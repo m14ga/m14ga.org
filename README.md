@@ -1,2 +1,3 @@
 # m14ga.org
-We haven't even registered the domain yet.
+
+Go to [m14ga.org](https://m14ga.org)
