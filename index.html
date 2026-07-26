@@ -38,14 +38,11 @@
 		}
 
 		.lang-nav {
-			position: fixed;
-			top: 1.2rem;
-			right: 1.4rem;
-			z-index: 100;
 			display: flex;
 			gap: 0.35rem;
 			flex-wrap: wrap;
-			justify-content: flex-end;
+			justify-content: center;
+			margin-bottom: 1.6em;
 		}
 
 		.lang-btn {
@@ -340,8 +337,6 @@
 			}
 
 			.lang-nav {
-				top: 0.6rem;
-				right: 0.6rem;
 				gap: 0.25rem;
 			}
 
@@ -354,14 +349,6 @@
 </head>
 <body>
 	<div class="bg-xiv">XIV</div>
-
-	<nav class="lang-nav" aria-label="Language selector">
-		<button class="lang-btn" data-lang="zh-CN">简体</button>
-		<button class="lang-btn" data-lang="zh-TW">繁體</button>
-		<button class="lang-btn" data-lang="en">EN</button>
-		<button class="lang-btn" data-lang="es">ES</button>
-		<button class="lang-btn" data-lang="de">DE</button>
-	</nav>
 
 	<section class="hero">
 		<div class="title-block">
@@ -400,6 +387,13 @@
 	</section>
 
 	<div class="bottom">
+		<nav class="lang-nav" aria-label="Language selector">
+			<button class="lang-btn" data-lang="zh-CN">简体</button>
+			<button class="lang-btn" data-lang="zh-TW">繁體</button>
+			<button class="lang-btn" data-lang="en">EN</button>
+			<button class="lang-btn" data-lang="es">ES</button>
+			<button class="lang-btn" data-lang="de">DE</button>
+		</nav>
 		<span class="bottom-line">
 			<strong data-i18n="copyright">Copyright © 2026 M14GA. All Rights Reserved.</strong>
 		</span>
