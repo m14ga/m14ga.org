@@ -1,351 +1,567 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>M14GA</title>
-		<link rel="icon" type="image/png" href="14.svg">
-		<link rel="apple-touch-icon" sizes="180x180" href="14.png">
-		<link rel="apple-touch-icon" sizes="120x120" href="14.png">
-		<style>
-			*,
-			*::before,
-			*::after {
-				margin: 0;
-				padding: 0;
-				box-sizing: border-box;
-			}
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>M14GA</title>
+	<link rel="icon" type="image/png" href="14.svg">
+	<link rel="apple-touch-icon" sizes="180x180" href="14.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="14.png">
+	<style>
+		*,
+		*::before,
+		*::after {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
 
-			body {
-				background: #030303;
-				color: #fff;
-				font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, 'Noto Serif SC', '微软雅黑', serif;
-				overflow-x: hidden;
-			}
+		body {
+			background: #030303;
+			color: #fff;
+			font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, 'Noto Serif SC', '微软雅黑', serif;
+			overflow-x: hidden;
+		}
 
-			.bg-xiv {
-				position: fixed;
-				top: 50%;
-				left: 50%;
-				transform: translate(-50%, -50%);
-				font-size: min(50vw, 70vh);
-				font-weight: 700;
-				color: rgba(255, 255, 255, 0.05);
-				pointer-events: none;
-				user-select: none;
-				white-space: nowrap;
-				z-index: 0;
-			}
+		.bg-xiv {
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			font-size: min(50vw, 70vh);
+			font-weight: 700;
+			color: rgba(255, 255, 255, 0.05);
+			pointer-events: none;
+			user-select: none;
+			white-space: nowrap;
+			z-index: 0;
+		}
 
-			.hero {
-				position: relative;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				justify-content: center;
-				min-height: 100vh;
-				z-index: 1;
-			}
+		.lang-nav {
+			position: fixed;
+			top: 1.2rem;
+			right: 1.4rem;
+			z-index: 100;
+			display: flex;
+			gap: 0.35rem;
+			flex-wrap: wrap;
+			justify-content: flex-end;
+		}
 
-			.title-block {
-				text-align: center;
-				padding: 0 2rem;
-			}
+		.lang-btn {
+			background: rgba(255, 255, 255, 0.04);
+			border: 1px solid rgba(212, 168, 67, 0.15);
+			color: rgba(255, 255, 255, 0.5);
+			font-size: 0.7rem;
+			padding: 0.3em 0.55em;
+			border-radius: 12px;
+			cursor: pointer;
+			transition: all 0.25s ease;
+			letter-spacing: 0.04em;
+			line-height: 1;
+			font-family: inherit;
+		}
 
-			.title {
-				font-size: clamp(3.5rem, 20vw, 18rem);
-				font-weight: 700;
-				letter-spacing: 0.12em;
-				line-height: 1;
-				color: #fff;
-				animation: titleIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-			}
+		.lang-btn:hover {
+			background: rgba(212, 168, 67, 0.08);
+			color: #d4a843;
+			border-color: rgba(212, 168, 67, 0.3);
+		}
 
-			@keyframes titleIn {
-				0% {
-					opacity: 0;
-					transform: scale(0.85);
-					filter: blur(24px);
-				}
+		.lang-btn.active {
+			background: rgba(212, 168, 67, 0.12);
+			color: #d4a843;
+			border-color: rgba(212, 168, 67, 0.4);
+			font-weight: 700;
+		}
 
-				100% {
-					opacity: 1;
-					transform: scale(1);
-					filter: blur(0);
-				}
-			}
+		.hero {
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			min-height: 100vh;
+			z-index: 1;
+		}
 
-			.slogan-cn {
-				font-size: clamp(1.2rem, 3.5vw, 3rem);
-				font-weight: 700;
-				color: #d4a843;
-				letter-spacing: 0.15em;
-				margin-top: 0.4em;
+		.title-block {
+			text-align: center;
+			padding: 0 2rem;
+		}
+
+		.title {
+			font-size: clamp(3.5rem, 20vw, 18rem);
+			font-weight: 700;
+			letter-spacing: 0.12em;
+			line-height: 1;
+			color: #fff;
+			animation: titleIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+		}
+
+		@keyframes titleIn {
+			0% {
 				opacity: 0;
-				animation: sloganIn 0.8s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+				transform: scale(0.85);
+				filter: blur(24px);
+			}
+
+			100% {
+				opacity: 1;
+				transform: scale(1);
+				filter: blur(0);
+			}
+		}
+
+		.slogan-cn {
+			font-size: clamp(1.2rem, 3.5vw, 3rem);
+			font-weight: 700;
+			color: #d4a843;
+			letter-spacing: 0.15em;
+			margin-top: 0.4em;
+			opacity: 0;
+			animation: sloganIn 0.8s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+		}
+
+		.slogan-en {
+			font-size: clamp(0.75rem, 1.4vw, 1.4rem);
+			font-weight: 400;
+			color: rgba(212, 168, 67, 0.5);
+			letter-spacing: 0.25em;
+			text-transform: uppercase;
+			margin-top: 0.6em;
+			opacity: 0;
+			animation: sloganIn 0.8s 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+		}
+
+		@keyframes sloganIn {
+			0% {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			100% {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.info {
+			position: relative;
+			z-index: 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 60vh;
+			padding: 4rem 2rem 6rem;
+			background: linear-gradient(180deg, transparent 0%, rgba(10, 8, 4, 0.8) 30%, rgba(10, 8, 4, 0.9) 70%, #030303 100%);
+		}
+
+		.glass {
+			width: 100%;
+			max-width: 720px;
+			padding: clamp(2rem, 4vw, 3.5rem);
+			background: rgba(255, 255, 255, 0.04);
+			backdrop-filter: blur(20px);
+			-webkit-backdrop-filter: blur(20px);
+			border: 1px solid rgba(212, 168, 67, 0.15);
+			border-radius: 20px;
+			text-align: center;
+			animation: fadeUp 0.9s 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+		}
+
+		@keyframes fadeUp {
+			0% {
+				opacity: 0;
+				transform: translateY(30px);
+			}
+
+			100% {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.glass p {
+			font-size: clamp(0.9rem, 1.5vw, 1.15rem);
+			line-height: 1.8;
+			color: rgba(255, 255, 255, 0.8);
+		}
+
+		.glass p+p {
+			margin-top: 0.6em;
+		}
+
+		.glass a[href^="http"] {
+			color: #d4a843;
+			text-decoration: none;
+			border-bottom: 1px solid rgba(212, 168, 67, 0.3);
+			transition: border-color 0.3s;
+		}
+
+		.glass a[href^="http"]:hover {
+			border-color: #d4a843;
+		}
+
+		.bottom a[href^="http"] {
+			color: #d4a843;
+			text-decoration: none;
+			border-bottom: 1px solid rgba(212, 168, 67, 0.3);
+			transition: border-color 0.3s;
+		}
+
+		.bottom a[href^="http"]:hover {
+			border-color: #d4a843;
+		}
+
+		.contact-label {
+			margin-top: 1.2em !important;
+			font-size: 0.85em !important;
+			color: rgba(255, 255, 255, 0.4) !important;
+			letter-spacing: 0.15em;
+		}
+
+		.emails {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 0.6em;
+			margin-top: 0.8em;
+		}
+
+		.contact-btn {
+			display: inline-block;
+			padding: 0.5em 1.2em;
+			font-size: clamp(0.7rem, 1.1vw, 0.9rem);
+			letter-spacing: 0.1em;
+			color: #d4a843;
+			border: 1px solid rgba(212, 168, 67, 0.25);
+			border-radius: 20px;
+			text-decoration: none;
+			transition: all 0.3s ease;
+		}
+
+		.contact-btn:hover {
+			background: rgba(212, 168, 67, 0.1);
+			border-color: rgba(212, 168, 67, 0.6);
+			transform: translateY(-2px);
+		}
+
+		.page-about {
+			position: relative;
+			z-index: 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 100vh;
+			padding: 4rem 2rem;
+		}
+
+		.glass-title {
+			font-size: clamp(1.4rem, 2.5vw, 2rem);
+			font-weight: 700;
+			color: #d4a843;
+			letter-spacing: 0.15em;
+			margin-bottom: 0.8em;
+		}
+
+		.divider {
+			width: 40px;
+			height: 1px;
+			background: rgba(212, 168, 67, 0.3);
+			margin: 1.8em auto;
+		}
+
+		.goals {
+			text-align: left;
+			max-width: 480px;
+			margin: 0 auto;
+		}
+
+		.goal {
+			display: flex;
+			gap: 1em;
+			margin-bottom: 1.2em;
+		}
+
+		.goal-num {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: #d4a843;
+			flex-shrink: 0;
+			width: 1.5em;
+		}
+
+		.goal strong {
+			display: block;
+			color: #fff;
+			font-size: 1rem;
+			margin-bottom: 0.15em;
+		}
+
+		.goal p {
+			font-size: 0.9rem !important;
+			color: rgba(255, 255, 255, 0.6) !important;
+			margin: 0 !important;
+		}
+
+		.bottom {
+			position: relative;
+			z-index: 1;
+			text-align: center;
+			padding: 2.5rem 2rem;
+			font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+		}
+
+		.bottom-line {
+			display: block;
+			font-size: 0.75rem;
+			letter-spacing: 0.2em;
+			color: rgba(255, 255, 255, 0.15);
+			line-height: 2;
+		}
+
+		.bottom-line strong {
+			color: rgba(255, 255, 255, 0.3);
+			font-weight: 700;
+		}
+
+		.bottom-line .gold {
+			color: rgba(212, 168, 67, 0.3);
+		}
+
+		@media (max-width: 640px) {
+			.title {
+				letter-spacing: 0.08em;
 			}
 
 			.slogan-en {
-				font-size: clamp(0.75rem, 1.4vw, 1.4rem);
-				font-weight: 400;
-				color: rgba(212, 168, 67, 0.5);
-				letter-spacing: 0.25em;
-				text-transform: uppercase;
-				margin-top: 0.6em;
-				opacity: 0;
-				animation: sloganIn 0.8s 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-			}
-
-			@keyframes sloganIn {
-				0% {
-					opacity: 0;
-					transform: translateY(24px);
-				}
-
-				100% {
-					opacity: 1;
-					transform: translateY(0);
-				}
-			}
-
-			.info {
-				position: relative;
-				z-index: 1;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				min-height: 60vh;
-				padding: 4rem 2rem 6rem;
-				background: linear-gradient(180deg, transparent 0%, rgba(10, 8, 4, 0.8) 30%, rgba(10, 8, 4, 0.9) 70%, #030303 100%);
-			}
-
-			.glass {
-				width: 100%;
-				max-width: 720px;
-				padding: clamp(2rem, 4vw, 3.5rem);
-				background: rgba(255, 255, 255, 0.04);
-				backdrop-filter: blur(20px);
-				-webkit-backdrop-filter: blur(20px);
-				border: 1px solid rgba(212, 168, 67, 0.15);
-				border-radius: 20px;
-				text-align: center;
-				animation: fadeUp 0.9s 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-			}
-
-			@keyframes fadeUp {
-				0% {
-					opacity: 0;
-					transform: translateY(30px);
-				}
-
-				100% {
-					opacity: 1;
-					transform: translateY(0);
-				}
-			}
-
-			.glass p {
-				font-size: clamp(0.9rem, 1.5vw, 1.15rem);
-				line-height: 1.8;
-				color: rgba(255, 255, 255, 0.8);
-			}
-
-			.glass p+p {
-				margin-top: 0.6em;
-			}
-
-			.glass a[href^="http"] {
-				color: #d4a843;
-				text-decoration: none;
-				border-bottom: 1px solid rgba(212, 168, 67, 0.3);
-				transition: border-color 0.3s;
-			}
-
-			.glass a[href^="http"]:hover {
-				border-color: #d4a843;
-			}
-
-			.bottom a[href^="http"] {
-				color: #d4a843;
-				text-decoration: none;
-				border-bottom: 1px solid rgba(212, 168, 67, 0.3);
-				transition: border-color 0.3s;
-			}
-
-			.bottom a[href^="http"]:hover {
-				border-color: #d4a843;
-			}
-
-			.contact-label {
-				margin-top: 1.2em !important;
-				font-size: 0.85em !important;
-				color: rgba(255, 255, 255, 0.4) !important;
 				letter-spacing: 0.15em;
 			}
 
-			.emails {
-				display: flex;
-				flex-wrap: wrap;
-				justify-content: center;
-				gap: 0.6em;
-				margin-top: 0.8em;
+			.lang-nav {
+				top: 0.6rem;
+				right: 0.6rem;
+				gap: 0.25rem;
 			}
 
-			.contact-btn {
-				display: inline-block;
-				padding: 0.5em 1.2em;
-				font-size: clamp(0.7rem, 1.1vw, 0.9rem);
-				letter-spacing: 0.1em;
-				color: #d4a843;
-				border: 1px solid rgba(212, 168, 67, 0.25);
-				border-radius: 20px;
-				text-decoration: none;
-				transition: all 0.3s ease;
+			.lang-btn {
+				font-size: 0.6rem;
+				padding: 0.2em 0.4em;
 			}
+		}
+	</style>
+</head>
+<body>
+	<div class="bg-xiv">XIV</div>
 
-			.contact-btn:hover {
-				background: rgba(212, 168, 67, 0.1);
-				border-color: rgba(212, 168, 67, 0.6);
-				transform: translateY(-2px);
-			}
+	<nav class="lang-nav" aria-label="Language selector">
+		<button class="lang-btn" data-lang="zh-CN">简体</button>
+		<button class="lang-btn" data-lang="zh-TW">繁體</button>
+		<button class="lang-btn" data-lang="en">EN</button>
+		<button class="lang-btn" data-lang="es">ES</button>
+		<button class="lang-btn" data-lang="de">DE</button>
+	</nav>
 
-			.page-about {
-				position: relative;
-				z-index: 1;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				min-height: 100vh;
-				padding: 4rem 2rem;
-			}
-
-			.glass-title {
-				font-size: clamp(1.4rem, 2.5vw, 2rem);
-				font-weight: 700;
-				color: #d4a843;
-				letter-spacing: 0.15em;
-				margin-bottom: 0.8em;
-			}
-
-			.divider {
-				width: 40px;
-				height: 1px;
-				background: rgba(212, 168, 67, 0.3);
-				margin: 1.8em auto;
-			}
-
-			.goals {
-				text-align: left;
-				max-width: 480px;
-				margin: 0 auto;
-			}
-
-			.goal {
-				display: flex;
-				gap: 1em;
-				margin-bottom: 1.2em;
-			}
-
-			.goal-num {
-				font-size: 1.3rem;
-				font-weight: 700;
-				color: #d4a843;
-				flex-shrink: 0;
-				width: 1.5em;
-			}
-
-			.goal strong {
-				display: block;
-				color: #fff;
-				font-size: 1rem;
-				margin-bottom: 0.15em;
-			}
-
-			.goal p {
-				font-size: 0.9rem !important;
-				color: rgba(255, 255, 255, 0.6) !important;
-				margin: 0 !important;
-			}
-
-			.bottom {
-				position: relative;
-				z-index: 1;
-				text-align: center;
-				padding: 2.5rem 2rem;
-				font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
-			}
-
-			.bottom-line {
-				display: block;
-				font-size: 0.75rem;
-				letter-spacing: 0.2em;
-				color: rgba(255, 255, 255, 0.15);
-				line-height: 2;
-			}
-
-			.bottom-line strong {
-				color: rgba(255, 255, 255, 0.3);
-				font-weight: 700;
-			}
-
-			.bottom-line .gold {
-				color: rgba(212, 168, 67, 0.3);
-			}
-
-			@media (max-width: 640px) {
-				.title {
-					letter-spacing: 0.08em;
-				}
-
-				.slogan-en {
-					letter-spacing: 0.15em;
-				}
-			}
-		</style>
-	</head>
-	<body>
-		<div class="bg-xiv">XIV</div>
-		<section class="hero">
-			<div class="title-block">
-				<h1 class="title">M14GA</h1>
-				<p class="slogan-cn">让第十四帝国再次伟大</p>
-				<p class="slogan-en">Make the 14th Empire Great Again</p>
-			</div>
-		</section>
-		<section class="page-about">
-			<div class="glass">
-				<h2 class="glass-title">关于</h2>
-				<p>M14GA 是由第十四帝国同学建立的一个神圣而诡异的组织。</p>
-				<p>我们相信，一个班级可以不止于教室，一个帝国可以不止于山河。它可以拥有自己的数字领地。</p>
-				<p>第十四帝国是一个伟大的帝国。我们有最智慧的生物、最诡异的人类、最宽广的题海和最疯癫的精神状态。没有人比我们更好，没有人。所以我们必须行动。建立属于全体国民的网络空间，这是我们能做的最伟大的事。我们必将成功。让第十四帝国再次伟大！</p>
-				<div class="divider"></div>
-				<h2 class="glass-title">我们的宗旨</h2>
-				<p>我们成立 M14GA 组织，并为建设崭新的第十四帝国贡献力量。</p>
-				<p>我们相信，第十四帝国会迎来新的辉煌。</p>
-				<p style="margin-top:1.2em;font-size:1.2em;color:#d4a843;letter-spacing:0.15em;font-weight:700;">
-					让第十四帝国再次伟大，M14GA!</p>
-				<div class="divider"></div>
-				<h2 class="glass-title">项目</h2>
-				<p><a href="https://f.m14ga.org">f.m14ga.org</a> — Jacky 论坛镜像站</p>
-				<p style="color:rgba(255,255,255,0.4);font-size:0.85em;">更多项目正在构思中</p>
-				<div class="divider"></div>
-				<p class="contact-label">联系我们</p>
-				<div class="emails">
-					<a class="contact-btn" href="mailto:support@m14ga.org">support@m14ga.org</a>
-					<a class="contact-btn" href="mailto:jesus@lqh2011.com">jesus@lqh2011.com</a>
-					<a class="contact-btn" href="mailto:jacky@zhujingqi.com">jacky@zhujingqi.com</a>
-				</div>
-			</div>
-		</section>
-		<div class="bottom">
-			<span class="bottom-line">
-				<strong>Copyright © 2026 M14GA. All Rights Reserved.</strong>
-			</span>
-			<span class="bottom-line">
-				<strong>M14GA</strong>
-				<span class="gold">·</span>
-				<a href="https://m14ga.org">m14ga.org</a>
-			</span>
+	<section class="hero">
+		<div class="title-block">
+			<h1 class="title">M14GA</h1>
+			<p class="slogan-cn" data-i18n="sloganMain">让第十四帝国再次伟大</p>
+			<p class="slogan-en" data-i18n="sloganSub">Make the 14th Empire Great Again</p>
 		</div>
-	</body>
+	</section>
+
+	<section class="page-about">
+		<div class="glass">
+			<h2 class="glass-title" data-i18n="aboutTitle">关于</h2>
+			<p data-i18n="aboutP1">M14GA 是由第十四帝国同学建立的一个神圣而诡异的组织。</p>
+			<p data-i18n="aboutP2">我们相信，一个班级可以不止于教室，一个帝国可以不止于山河。它可以拥有自己的数字领地。</p>
+			<p data-i18n="aboutP3">第十四帝国是一个伟大的帝国。我们有最智慧的生物、最诡异的人类、最宽广的题海和最疯癫的精神状态。没有人比我们更好，没有人。所以我们必须行动。建立属于全体国民的网络空间，这是我们能做的最伟大的事。我们必将成功。让第十四帝国再次伟大！</p>
+			<div class="divider"></div>
+
+			<h2 class="glass-title" data-i18n="missionTitle">我们的宗旨</h2>
+			<p data-i18n="missionP1">我们成立 M14GA 组织，并为建设崭新的第十四帝国贡献力量。</p>
+			<p data-i18n="missionP2">我们相信，第十四帝国会迎来新的辉煌。</p>
+			<p style="margin-top:1.2em;font-size:1.2em;color:#d4a843;letter-spacing:0.15em;font-weight:700;" data-i18n="missionSlogan">让第十四帝国再次伟大，M14GA!</p>
+			<div class="divider"></div>
+
+			<h2 class="glass-title" data-i18n="projectsTitle">项目</h2>
+			<p><a href="https://f.m14ga.org">f.m14ga.org</a> <span data-i18n="projectsDesc">— Jacky 论坛镜像站</span></p>
+			<p style="color:rgba(255,255,255,0.4);font-size:0.85em;" data-i18n="projectsMore">更多项目正在构思中</p>
+			<div class="divider"></div>
+
+			<p class="contact-label" data-i18n="contactUs">联系我们</p>
+			<div class="emails">
+				<a class="contact-btn" href="mailto:support@m14ga.org">support@m14ga.org</a>
+				<a class="contact-btn" href="mailto:jesus@lqh2011.com">jesus@lqh2011.com</a>
+				<a class="contact-btn" href="mailto:jacky@zhujingqi.com">jacky@zhujingqi.com</a>
+			</div>
+		</div>
+	</section>
+
+	<div class="bottom">
+		<span class="bottom-line">
+			<strong data-i18n="copyright">Copyright © 2026 M14GA. All Rights Reserved.</strong>
+		</span>
+		<span class="bottom-line">
+			<strong>M14GA</strong>
+			<span class="gold">·</span>
+			<a href="https://m14ga.org">m14ga.org</a>
+		</span>
+	</div>
+
+	<script>
+		const i18n = {
+			"zh-CN": {
+				sloganMain: "让第十四帝国再次伟大",
+				sloganSub: "Make the 14th Empire Great Again",
+				aboutTitle: "关于",
+				aboutP1: "M14GA 是由第十四帝国同学建立的一个神圣而诡异的组织。",
+				aboutP2: "我们相信，一个班级可以不止于教室，一个帝国可以不止于山河。它可以拥有自己的数字领地。",
+				aboutP3: "第十四帝国是一个伟大的帝国。我们有最智慧的生物、最诡异的人类、最宽广的题海和最疯癫的精神状态。没有人比我们更好，没有人。所以我们必须行动。建立属于全体国民的网络空间，这是我们能做的最伟大的事。我们必将成功。让第十四帝国再次伟大！",
+				missionTitle: "我们的宗旨",
+				missionP1: "我们成立 M14GA 组织，并为建设崭新的第十四帝国贡献力量。",
+				missionP2: "我们相信，第十四帝国会迎来新的辉煌。",
+				missionSlogan: "让第十四帝国再次伟大，M14GA!",
+				projectsTitle: "项目",
+				projectsDesc: "— Jacky 论坛镜像站",
+				projectsMore: "更多项目正在构思中",
+				contactUs: "联系我们",
+				copyright: "Copyright © 2026 M14GA. All Rights Reserved."
+			},
+			"zh-TW": {
+				sloganMain: "讓第十四帝國再次偉大",
+				sloganSub: "Make the 14th Empire Great Again",
+				aboutTitle: "關於",
+				aboutP1: "M14GA 是由第十四帝國同學建立的一個神聖而詭異的組織。",
+				aboutP2: "我們相信，一個班級可以不止於教室，一個帝國可以不止於山河。它可以擁有自己的數字領地。",
+				aboutP3: "第十四帝國是一個偉大的帝國。我們有最智慧的生物、最詭異的人類、最寬廣的題海和最瘋癲的精神狀態。沒有人比我們更好，沒有人。所以我們必須行動。建立屬於全體國民的網絡空間，這是我們能做的最偉大的事。我們必將成功。讓第十四帝國再次偉大！",
+				missionTitle: "我們的宗旨",
+				missionP1: "我們成立 M14GA 組織，並為建設嶄新的第十四帝國貢獻力量。",
+				missionP2: "我們相信，第十四帝國會迎來新的輝煌。",
+				missionSlogan: "讓第十四帝國再次偉大，M14GA!",
+				projectsTitle: "項目",
+				projectsDesc: "— Jacky 論壇鏡像站",
+				projectsMore: "更多項目正在構思中",
+				contactUs: "聯繫我們",
+				copyright: "Copyright © 2026 M14GA. All Rights Reserved."
+			},
+			"en": {
+				sloganMain: "Make the 14th Empire Great Again",
+				sloganSub: "M14GA",
+				aboutTitle: "About",
+				aboutP1: "M14GA is a sacred and uncanny organization founded by the comrades of the 14th Empire.",
+				aboutP2: "We believe that a class can extend beyond the classroom, and an empire can extend beyond mountains and rivers. It can have its own digital territory.",
+				aboutP3: "The 14th Empire is a great empire. We have the wisest creatures, the uncanniest humans, the broadest sea of problems, and the maddest state of mind. No one is better than us, no one. So we must act. Building a cyberspace that belongs to all citizens — this is the greatest thing we can do. We will succeed. Make the 14th Empire Great Again!",
+				missionTitle: "Our Mission",
+				missionP1: "We founded the M14GA organization to contribute to building a brand new 14th Empire.",
+				missionP2: "We believe the 14th Empire will usher in a new era of glory.",
+				missionSlogan: "Make the 14th Empire Great Again, M14GA!",
+				projectsTitle: "Projects",
+				projectsDesc: "— Jacky Forum Mirror",
+				projectsMore: "More projects are in the works",
+				contactUs: "Contact Us",
+				copyright: "Copyright © 2026 M14GA. All Rights Reserved."
+			},
+			"es": {
+				sloganMain: "Hagamos Grande al 14.º Imperio de Nuevo",
+				sloganSub: "M14GA",
+				aboutTitle: "Acerca de",
+				aboutP1: "M14GA es una organización sagrada y extraña fundada por los camaradas del 14.º Imperio.",
+				aboutP2: "Creemos que una clase puede ir más allá del aula, y un imperio puede ir más allá de montañas y ríos. Puede tener su propio territorio digital.",
+				aboutP3: "El 14.º Imperio es un gran imperio. Tenemos las criaturas más sabias, los humanos más extraños, el mar de problemas más amplio y el estado mental más alocado. Nadie es mejor que nosotros, nadie. Así que debemos actuar. Construir un ciberespacio que pertenezca a todos los ciudadanos — esto es lo más grandioso que podemos hacer. Triunfaremos. ¡Hagamos Grande al 14.º Imperio de Nuevo!",
+				missionTitle: "Nuestra Misión",
+				missionP1: "Fundamos la organización M14GA para contribuir a la construcción de un nuevo 14.º Imperio.",
+				missionP2: "Creemos que el 14.º Imperio inaugurará una nueva era de gloria.",
+				missionSlogan: "¡Hagamos Grande al 14.º Imperio de Nuevo, M14GA!",
+				projectsTitle: "Proyectos",
+				projectsDesc: "— Espejo del Foro de Jacky",
+				projectsMore: "Más proyectos en desarrollo",
+				contactUs: "Contáctenos",
+				copyright: "Copyright © 2026 M14GA. All Rights Reserved."
+			},
+			"de": {
+				sloganMain: "Macht das 14. Imperium wieder groß",
+				sloganSub: "M14GA",
+				aboutTitle: "Über uns",
+				aboutP1: "M14GA ist eine heilige und eigenartige Organisation, gegründet von den Kameraden des 14. Imperiums.",
+				aboutP2: "Wir glauben, dass eine Klasse mehr als ein Klassenzimmer sein kann und ein Imperium mehr als Berge und Flüsse. Es kann sein eigenes digitales Territorium haben.",
+				aboutP3: "Das 14. Imperium ist ein großartiges Imperium. Wir haben die weisesten Kreaturen, die eigenartigsten Menschen, das breiteste Meer an Problemen und den verrücktesten Geisteszustand. Niemand ist besser als wir, niemand. Also müssen wir handeln. Einen Cyberspace aufzubauen, der allen Bürgern gehört — das ist das Größte, was wir tun können. Wir werden erfolgreich sein. Macht das 14. Imperium wieder groß!",
+				missionTitle: "Unser Auftrag",
+				missionP1: "Wir gründeten die M14GA-Organisation, um zum Aufbau eines brandneuen 14. Imperiums beizutragen.",
+				missionP2: "Wir glauben, dass das 14. Imperium eine neue Ära des Ruhms einläuten wird.",
+				missionSlogan: "Macht das 14. Imperium wieder groß, M14GA!",
+				projectsTitle: "Projekte",
+				projectsDesc: "— Jacky Forum Spiegel",
+				projectsMore: "Weitere Projekte in Planung",
+				contactUs: "Kontakt",
+				copyright: "Copyright © 2026 M14GA. All Rights Reserved."
+			}
+		};
+
+		function setLang(lang) {
+			if (!i18n[lang]) return;
+
+			document.documentElement.lang = lang;
+			localStorage.setItem('m14ga-lang', lang);
+
+			document.querySelectorAll('[data-i18n]').forEach(el => {
+				const key = el.dataset.i18n;
+				if (i18n[lang][key]) {
+					el.textContent = i18n[lang][key];
+				}
+			});
+
+			document.querySelectorAll('.lang-btn').forEach(btn => {
+				btn.classList.toggle('active', btn.dataset.lang === lang);
+			});
+		}
+
+		// Determine initial language: URL param > localStorage > browser preference > zh-CN
+		(function initLang() {
+			const urlParams = new URLSearchParams(window.location.search);
+			const urlLang = urlParams.get('lang');
+			const stored = localStorage.getItem('m14ga-lang');
+			const browserLang = (navigator.language || '').substring(0, 2);
+
+			// Map short browser lang to our codes
+			const browserMap = {
+				'zh': {
+					'CN': 'zh-CN',
+					'TW': 'zh-TW',
+					'HK': 'zh-TW',
+					'MO': 'zh-TW',
+					'SG': 'zh-CN'
+				},
+				'en': 'en',
+				'es': 'es',
+				'de': 'de'
+			};
+
+			let detected = 'zh-CN';
+			if (urlLang && i18n[urlLang]) {
+				detected = urlLang;
+			} else if (stored && i18n[stored]) {
+				detected = stored;
+			} else {
+				const region = (navigator.language || '').length >= 5 ? navigator.language.substring(3, 5) : '';
+				const map = browserMap[browserLang];
+				if (typeof map === 'string') {
+					detected = map;
+				} else if (typeof map === 'object' && region && map[region]) {
+					detected = map[region];
+				} else if (typeof map === 'object' && browserLang === 'zh') {
+					detected = 'zh-CN';
+				}
+			}
+
+			setLang(detected);
+		})();
+
+		// Click handlers
+		document.querySelectorAll('.lang-btn').forEach(btn => {
+			btn.addEventListener('click', () => setLang(btn.dataset.lang));
+		});
+	</script>
+</body>
 </html>
