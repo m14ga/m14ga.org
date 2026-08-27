@@ -19,6 +19,7 @@
   }
 
   .bus-console {
+    position: relative;
     margin: auto;
     background: #000;
     border: 6px solid #2a2a2a;
@@ -266,6 +267,74 @@
     .top-buttons { grid-template-columns: repeat(4, 1fr); }
     .voice-btn { height: 48px; }
   }
+
+  /* ============ “i” 信息角标 + 信息页 ============ */
+  .info-badge {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 34px;
+    height: 34px;
+    line-height: 30px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 900;
+    font-family: Georgia, serif;
+    color: #fff;
+    background: rgba(255, 255, 255, .10);
+    border: 1px solid #555;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 5;
+    user-select: none;
+  }
+  .info-badge:hover { color: #fff; background: #333; }
+  .info-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(0, 0, 0, .72);
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .info-overlay.show { display: flex; }
+  .info-card {
+    background: #101014;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 28px 34px;
+    max-width: 440px;
+    width: 88%;
+    text-align: center;
+    color: #eee;
+    font-family: "Microsoft YaHei", "SimHei", sans-serif;
+  }
+  .info-card h2 { margin: 0 0 10px; font-size: 22px; color: #fff; }
+  .info-card p { margin: 6px 0; font-size: 14px; color: #bbb; line-height: 1.6; }
+  .info-card .site-link {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 10px 22px;
+    font-size: 17px;
+    font-weight: 900;
+    color: #fff;
+    background: #079dbb;
+    border-radius: 6px;
+    text-decoration: none;
+  }
+  .info-card .site-link:hover { background: #0ab0d1; }
+  .info-card .close-btn {
+    margin-top: 20px;
+    padding: 6px 18px;
+    font-size: 13px;
+    color: #888;
+    background: none;
+    border: 1px solid #444;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .info-card .close-btn:hover { color: #fff; border-color: #888; }
 </style>
 </head>
 <body>
@@ -332,10 +401,24 @@
       </span>
       <div class="led-mask"></div>
     </div>
+
+    <!-- “i” 信息角标 -->
+    <div class="info-badge" id="infoBadge" title="关于">i</div>
+  </div>
+
+  <!-- 信息页弹窗 -->
+  <div class="info-overlay" id="infoOverlay">
+    <div class="info-card">
+      <h2>LHC南京公交报站软件</h2>
+      <p>本软件由 <b>Jacky</b> 制作</p>
+      <a href="https://zhujingqi.com" target="_blank" rel="noopener">zhujingqi.com</a>
+      <br>
+      <button class="close-btn" id="infoClose">关闭</button>
+      <p style="font-size:11px;color:#666;margin-top:14px;margin-bottom:0;">Copyright © 2026 zhujingqi.com</p>
+    </div>
   </div>
 
 </div>
-
 <script>
 (function () {
   "use strict";
@@ -833,6 +916,16 @@
     speak(v.txt);
     setTimeout(function () { b.classList.remove("playing"); }, 3000);
   });
+
+  // ---------- “i” 信息页 ----------
+  var elInfo = $("infoOverlay");
+  function toggleInfo(show) {
+    elInfo.classList.toggle("show", show);
+    if (show) { stopAuto(); setLed("关于 · 本机由 Jacky 制作"); setSub("zhujingqi.com"); }
+  }
+  $("infoBadge").addEventListener("click", function () { toggleInfo(true); });
+  $("infoClose").addEventListener("click", function () { toggleInfo(false); });
+  elInfo.addEventListener("click", function (e) { if (e.target === elInfo) toggleInfo(false); });
 
   // ---------- 初始化 ----------
   document.addEventListener("copy", function (e) { e.preventDefault(); });
