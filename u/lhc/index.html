@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公交车报站模拟器</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  html { overflow: hidden; }
+  body {
+    background: #000;
+    color: #fff;
+    font-family: "Microsoft YaHei", "SimHei", "Heiti SC", sans-serif;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    padding: 16px;
+  }
+
+  .bus-console {
+    margin: auto;
+    background: #000;
+    border: 6px solid #2a2a2a;
+    border-radius: 4px;
+    padding: 10px;
+    width: 100%;
+    max-width: 1120px;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+  :root { --fs-station: min(7vw, 96px); --fs-next: min(3vw, 40px); --fs-route: min(3.4vw, 44px); --fs-status: min(1.8vw, 20px); --fs-top: min(2vw, 26px); --dot: 6px; }
+
+  /* ============ 顶部功能按钮栏 ============ */
+  .top-buttons {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+  }
+  .voice-btn {
+    background: #079dbb;
+    border: 2px solid #000;
+    border-radius: 3px;
+    color: #fff;
+    font-size: var(--fs-top);
+    font-weight: 900;
+    font-family: "Microsoft YaHei", "SimHei", sans-serif;
+    height: 90px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 0 rgba(0,0,0,.35);
+    height: 60px;
+  }
+  .voice-btn:hover { filter: brightness(1.1); }
+  .voice-btn:active { filter: brightness(.9); }
+  .voice-btn.playing { filter: brightness(1.25); box-shadow: inset 0 0 0 3px #fff; }
+
+  /* ============ 主控制区 ============ */
+  .main-control {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .side-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .side-btn {
+    width: 175px;
+    max-width: 20vw;
+    height: 110px;
+    border: 2px solid #000;
+    border-radius: 3px;
+    color: #fff;
+    font-size: var(--fs-next);
+    font-weight: 900;
+    font-family: "Microsoft YaHei", "SimHei", sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 2px 0 rgba(0,0,0,.35);
+  }
+  .side-btn:hover { filter: brightness(1.1); }
+  .side-btn:active { filter: brightness(.88); }
+  .side-btn.red   { background: #d32f2f; }
+  .side-btn.green { background: #12b54a; }
+  .side-btn.blue  { background: #1572e6; }
+  .side-btn .triangle {
+    width: 0; height: 0;
+    border-top: 2.4vw solid transparent;
+    border-bottom: 2.4vw solid transparent;
+    max-width: 44px; max-height: 44px;
+  }
+  .side-btn .triangle.left  { border-right: 3.4vw solid #fff; }
+  .side-btn .triangle.right { border-left: 3.4vw solid #fff; }
+  .side-btn.playing { filter: brightness(1.3); }
+
+  /* ============ 中央三层黑框 ============ */
+  .route-display {
+    flex: 1;
+    min-width: 0;
+    background: #000;
+    border: 5px solid #cfcfcf;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .route-display .row { display: flex; align-items: center; justify-content: center; text-align: center; }
+  .route-line {
+    height: 100px;
+    font-size: var(--fs-route);
+    font-weight: 900;
+    color: #fff;
+    border-bottom: 3px solid #7a7a7a;
+    padding: 0 14px;
+    justify-content: space-between;
+  }
+  .route-line .dir-arrows {
+    font-size: 2.4vw;
+    color: #fff;
+    font-weight: 900;
+    letter-spacing: 2px;
+  }
+  .station-name {
+    height: 190px;
+    font-size: var(--fs-station);
+    font-weight: 900;
+    color: #f5f7fa;
+    border-bottom: 3px solid #7a7a7a;
+    line-height: 190px;
+    padding: 0 10px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .next-station {
+    height: 90px;
+    font-size: var(--fs-next);
+    font-weight: 700;
+    color: #fff;
+    line-height: 90px;
+    padding: 0 10px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* ============ 状态栏 ============ */
+  .status-bar {
+    margin-top: 8px;
+    background: #079dbb;
+    border: 2px solid #000;
+    border-radius: 3px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    color: #fff;
+    font-size: var(--fs-status);
+    font-weight: 700;
+    padding: 2px 3px;
+    text-align: center;
+    font-family: "Microsoft YaHei", "SimHei", sans-serif;
+  }
+  .status-bar span { border-right: 2px solid rgba(0,0,0,.35); }
+  .status-bar span:last-child { border-right: none; }
+
+  /* ============ LED 控制面板 ============ */
+  .led-panel {
+    margin-top: 8px;
+    background: #0c0c0c;
+    border: 3px solid #3a3a3a;
+    border-radius: 3px;
+    padding: 8px;
+  }
+  .led-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    color: #b9b9b9;
+    font-size: 15px;
+    padding: 4px 2px 8px;
+    border-bottom: 1px dashed #333;
+    margin-bottom: 8px;
+  }
+  .led-controls input[type=text] {
+    background: #1a1a1a; color: #fff; border: 1px solid #555;
+    border-radius: 2px; padding: 5px 8px; font-size: 14px; width: 240px;
+  }
+  .led-controls button {
+    background: #222; color: #ddd; border: 1px solid #555; border-radius: 2px;
+    padding: 5px 10px; font-size: 13px; cursor: pointer;
+  }
+  .led-controls button:hover { background: #333; }
+  .led-controls button.on {
+    background: #12b54a; color: #fff; border-color: #12b54a; font-weight: 700;
+  }
+
+  /* ============ LED 点阵屏（遮罩法）============ */
+  .led-screen {
+    position: relative;
+    background-color: #000;
+    border: 2px solid #111;
+    border-radius: 2px;
+    padding: 10px 12px;
+    margin-top: 6px;
+    font-family: "Microsoft YaHei", "SimHei", sans-serif;
+    font-weight: 900;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+  .led-screen .led-text { position: relative; z-index: 1; display: inline-block; }
+  .led-screen .led-mask {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background-image: radial-gradient(circle at 50% 50%, transparent 42%, #000 46%);
+    background-size: var(--dot) var(--dot);
+  }
+  .led-screen.yellow {
+    display: block;
+  }
+  .led-screen.yellow .led-text {
+    display: inline-block;
+    white-space: nowrap;
+    padding-left: 100%;
+    color: #d9f452;
+    text-shadow: 0 0 4px #b8d43a, 0 0 8px rgba(185, 212, 58, .6);
+    font-size: min(4vw, 56px);
+  }
+  .led-screen.route-led .led-text {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 3.2vw;
+  }
+  .led-screen.route-led .num { color: #ff2020; text-shadow: 0 0 5px #ff0000; }
+  .led-screen.route-led .arr  { color: #ffe400; text-shadow: 0 0 5px #ffcc00; }
+  .led-screen.route-led .dst  { color: #ffe400; text-shadow: 0 0 5px #ffcc00; }
+
+  .scroll-text { animation: marquee var(--ms, 9s) linear infinite; }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+
+  @media (max-width: 900px) {
+    .main-control { flex-wrap: wrap; }
+    .side-col { flex-direction: row; width: 100%; }
+    .side-btn { flex: 1; width: auto; max-width: none; height: 70px; }
+    .route-display { order: 2; width: 100%; }
+    .side-col:first-child { order: 1; }
+    .side-col:last-child { order: 3; }
+    .station-name { line-height: 130px; height: 130px; }
+    .next-station { line-height: 60px; height: 60px; }
+    .route-line { height: 70px; }
+  }
+  @media (max-width: 520px) {
+    .station-name { line-height: 90px; height: 90px; }
+    .next-station { line-height: 46px; height: 46px; }
+    .route-line { height: 52px; }
+    .voice-btn { height: 54px; letter-spacing: 0; }
+    .side-btn { height: 60px; }
+  }
+  @media (max-width: 380px) {
+    .top-buttons { grid-template-columns: repeat(4, 1fr); }
+    .voice-btn { height: 48px; }
+  }
+</style>
+</head>
+<body>
+<div class="bus-console">
+
+  <!-- 顶部功能按钮栏 -->
+  <div class="top-buttons voice-grid" id="voiceGrid"></div>
+
+  <!-- 主控制区 -->
+  <div class="main-control">
+
+    <!-- 左列 -->
+    <div class="side-col">
+      <button class="side-btn red"  id="btnReset">重置</button>
+      <button class="side-btn green" id="btnArrive">进站</button>
+      <button class="side-btn blue"  id="btnPrev"><span class="triangle left"></span></button>
+    </div>
+
+    <!-- 中央三层黑框 -->
+    <div class="route-display" id="stationScreen">
+      <div class="row route-line">
+        <span id="routeMeta">D1 上行</span>
+        <span class="dir-arrows">⇄</span>
+      </div>
+      <div class="row station-name" id="mainText">元化路</div>
+      <div class="row next-station" id="subText">下一站 南大仙林校区</div>
+    </div>
+
+    <!-- 右列 -->
+    <div class="side-col">
+      <button class="side-btn red"  id="btnVoice">菜单</button>
+      <button class="side-btn green" id="btnNext">出站</button>
+      <button class="side-btn blue"  id="btnForward"><span class="triangle right"></span></button>
+    </div>
+  </div>
+
+  <!-- 状态栏 -->
+  <div class="status-bar">
+    <span>前车距离: 0 m</span>
+    <span>后车距离: 0 m</span>
+    <span>工号：99999997</span>
+    <span>设备号：999997</span>
+  </div>
+
+  <!-- LED 控制面板 -->
+  <div class="led-panel">
+    <div class="led-controls">
+      <button id="btnAutoMode" class="on">自动</button>
+      <button id="btnRefresh">刷新</button>
+      <button id="btnSpeed">速度</button>
+      <button id="btnVol">广播音量 (%)</button>
+    </div>
+
+    <!-- 上层：黄绿点阵 + marquee 滚动 -->
+    <div class="led-screen yellow" id="ledArrive">
+      <span class="led-text scroll-text" id="ledArriveText">元化路到了</span>
+      <div class="led-mask"></div>
+    </div>
+
+    <!-- 下层：红编号 + 黄箭头 + 黄目的地 点阵 -->
+    <div class="led-screen route-led" id="headSign">
+      <span class="led-text" id="headSignText">
+        <span class="num">D1</span><span class="arr">→</span><span class="dst">中保村</span>
+      </span>
+      <div class="led-mask"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- 站点数据（含地铁换乘）----------
+  var stations = [
+    { name: "元化路", metro: "" },
+    { name: "南大仙林校区", metro: "此站可到达地铁2号线南大仙林校区站。" },
+    { name: "中医药大学", metro: "此站可到达地铁2号线羊山公园站。" },
+    { name: "南京邮电大学", metro: "" },
+    { name: "南京财经大学", metro: "" },
+    { name: "文苑路", metro: "" },
+    { name: "亚东新城区", metro: "" },
+    { name: "仙隐北路", metro: "" },
+    { name: "徐庄软件园", metro: "" },
+    { name: "聚宝山地铁站", metro: "此站可到达地铁4号线聚宝山站。" },
+    { name: "王家湾", metro: "" },
+    { name: "玄武大道·长途东站", metro: "" },
+    { name: "新庄广场东", metro: "此站可到达地铁3号线南京林业大学·新庄站。" },
+    { name: "新模范马路东", metro: "此站可到达地铁1号线新模范马路站。" },
+    { name: "司背后", metro: "" },
+    { name: "新模范马路·虹桥", metro: "此站可到达地铁5号线虹桥站。" },
+    { name: "定淮门", metro: "" },
+    { name: "清江花苑", metro: "" },
+    { name: "舸舫西园", metro: "" },
+    { name: "宝船遗址公园", metro: "" },
+    { name: "中保村", metro: "" }
+  ];
+
+  // 顶部固定服务语音（8 个，纯中文）
+  var fixedVoices = [
+    { label: "转弯",    txt: "车辆转弯，请拉好扶手，站稳扶好" },
+    { label: "让座",    txt: "请给老、弱、病、残、孕及抱小孩的乘客让座" },
+    { label: "后移",    txt: "上车乘客请往里走，请不要站在前门口" },
+    { label: "警告",    txt: "车辆行驶中，请站稳扶好，不要将头、手伸出窗外" },
+    { label: "投币",    txt: "上车请主动刷卡或投币，请自备零钱" },
+    { label: "卫生",    txt: "请保持车厢卫生，不要吸烟、吐痰、乱扔废弃物" },
+    { label: "外转弯",  txt: "车辆转弯请注意安全，请站稳扶好" },
+    { label: "满员",    txt: "本车已满员，请等候下一班车" }
+  ];
+
+  var LINE = "D1";           // 线路编号
+  var TERM_A = "元化路";     // 起点
+  var TERM_B = "中保村";     // 终点
+
+  // ---------- 状态 ----------
+  var idx = 0;               // 当前站（0 = 起点）
+  var voiceOn = true;
+  var autoMode = false;      // 自动模式已停用（先注释掉）
+  var speaking = false;      // 是否正在播放语音（防重叠）
+  var speechToken = 0;       // 语音代次：手动操作递增以作废在途请求
+  var currentAudio = null;   // 当前正在播放的音频（用于切断）
+  var timer = null;
+  var volPct = 100;           // 广播音量百分比
+
+  // ---------- DOM ----------
+  var $ = function (id) { return document.getElementById(id); };
+  var elHeadText = $("headSignText"), elMain = $("mainText"), elSub = $("subText"),
+      elScreen = $("stationScreen"), elRouteMeta = $("routeMeta"),
+      elLedArrive = $("ledArriveText"), elAutoBtn = $("btnAutoMode");
+
+  // ---------- TTS：讯飞在线合成 + IndexedDB 缓存 + 浏览器语音兜底 ----------
+  // 讯飞配置：控制台(console.xfyun.cn → 语音合成)获取。三个值都填好才走讯飞，否则自动用浏览器语音。
+  // 密钥以字符码数组密文存放，运行时用 xorshift32+异或还原，避免明文直接暴露在文件中。
+  var _d = function (c, s) { s = s >>> 0; var o = ""; for (var i = 0; i < c.length; i++) { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s >>>= 0; s ^= s << 5; s >>>= 0; o += String.fromCharCode(c[i] ^ (s & 255)); } return o; };
+  var IFLY_APPID = _d([125,95,15,128,39,85,180,217], 2654435769);
+  var IFLY_APIKEY = _d([228,253,200,54,167,230,165,75,216,136,170,76,157,203,61,203,230,171,168,227,72,116,95,86,183,26,208,155,98,2,31,173], 2246822519);
+  var IFLY_APISECRET = _d([32,99,67,192,74,123,179,166,217,211,81,2,38,179,15,130,238,172,192,30,127,157,157,148,145,197,162,115,49,55,160,160], 3266489909);
+  var IFLY_VCN = "x4_xiaoyan"; // 小燕(V3.0)，可换 x4_yezi / aisjiuxu / aisjinger / aisbabyxu
+
+  function b64bin(bytes) { var s = ""; for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]); return btoa(s); }
+  function b64utf8(str) { return btoa(unescape(encodeURIComponent(str))); }
+
+  var CACHE_VER = "v2";
+  function openDB() {
+    return new Promise(function (resolve, reject) {
+      var req = indexedDB.open("ifly_tts_cache", 2);
+      req.onupgradeneeded = function (e) {
+        var db = e.target.result;
+        if (e.oldVersion < 1) db.createObjectStore("audio", { keyPath: "key" });
+        else if (db.objectStoreNames.contains("audio")) { // 清空旧缓存（含损坏音频）
+          db.deleteObjectStore("audio");
+          db.createObjectStore("audio", { keyPath: "key" });
+        }
+      };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+  function cacheGet(key) {
+    return openDB().then(function (db) {
+      return new Promise(function (resolve) {
+        var r = db.transaction("audio", "readonly").objectStore("audio").get(key);
+        r.onsuccess = function () { resolve(r.result ? r.result.blob : null); };
+        r.onerror = function () { resolve(null); };
+      });
+    }).catch(function () { return null; });
+  }
+  function cacheSet(key, blob) {
+    openDB().then(function (db) {
+      return new Promise(function (resolve) {
+        var tx = db.transaction("audio", "readwrite");
+        tx.objectStore("audio").put({ key: key, blob: blob });
+        tx.oncomplete = resolve; tx.onerror = resolve;
+      });
+    }).catch(function () {});
+  }
+  function cacheKey(text) { return CACHE_VER + "|" + IFLY_VCN + "|" + text; }
+
+  function pickVoice() {
+    var vs = speechSynthesis.getVoices();
+    for (var i = 0; i < vs.length; i++) {
+      if (/zh[-_]/i.test(vs[i].lang) && /female|xiaoxiao|huihui|yaoyao/i.test(vs[i].name)) return vs[i];
+    }
+    for (var j = 0; j < vs.length; j++) { if (/zh[-_]/i.test(vs[j].lang)) return vs[j]; }
+    return null;
+  }
+  function browserSpeak(text, onEnd) {
+    if (!window.speechSynthesis) { if (onEnd) setTimeout(onEnd, 300); return; }
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-CN";
+    u.volume = volPct / 100;
+    u.rate = 1;
+    var v = pickVoice();
+    if (v) u.voice = v;
+    u.onend = function () { if (onEnd) onEnd(); };
+    u.onerror = function () { if (onEnd) onEnd(); };
+    speechSynthesis.speak(u);
+  }
+
+  function playBlob(blob, onEnd, tok) {
+    if (!blob || blob.size === 0) { if (onEnd) setTimeout(onEnd, 300); return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      if (tok !== speechToken) { if (onEnd) onEnd(); return; }   // 已被作废，不再播放
+      var a = new Audio();
+      a.src = reader.result; // data: URL，file:// 下也能播（blob: URL 在本地文件会被拦截）
+      a.volume = volPct / 100;
+      var done = false;
+      function fin() { if (!done) { done = true; if (currentAudio === a) currentAudio = null; if (onEnd) onEnd(); } }
+      a.onended = fin;
+      a.onerror = fin;
+      currentAudio = a;
+      a.play().catch(fin);
+    };
+    reader.onerror = function () { if (onEnd) setTimeout(onEnd, 300); };
+    reader.readAsDataURL(blob);
+  }
+
+  function iflySynth(text, key, onEnd, tok) {
+    var host = "tts-api.xfyun.cn";
+    var date = new Date().toUTCString();
+    var signOrigin = "host: " + host + "\ndate: " + date + "\nGET /v2/tts HTTP/1.1";
+    crypto.subtle.importKey("raw", new TextEncoder().encode(IFLY_APISECRET),
+      { name: "HMAC", hash: "SHA-256" }, false, ["sign"])
+      .then(function (k) { return crypto.subtle.sign("HMAC", k, new TextEncoder().encode(signOrigin)); })
+      .then(function (sig) {
+        var signature = b64bin(new Uint8Array(sig));
+        var authOrigin = 'api_key="' + IFLY_APIKEY + '",algorithm="hmac-sha256",headers="host date request-line",signature="' + signature + '"';
+        var url = "wss://" + host + "/v2/tts?authorization=" + encodeURIComponent(btoa(authOrigin)) +
+          "&date=" + encodeURIComponent(date) + "&host=" + host;
+        var ws = new WebSocket(url);
+        var bytes = [];
+        var jsonBuf = "";
+        var finished = false;
+        function aborted() { return tok !== speechToken; }
+        function fallback() {
+          if (finished) return;
+          finished = true;
+          if (!aborted()) browserSpeak(text, onEnd, tok);
+        }
+        ws.onopen = function () {
+          if (aborted()) { try { ws.close(); } catch (e) {} return; }
+          ws.send(JSON.stringify({
+            common: { app_id: IFLY_APPID },
+            business: { aue: "lame", sfl: 1, vcn: IFLY_VCN, tte: "UTF8", speed: 50, volume: Math.round(volPct), pitch: 50 },
+            data: { status: 2, text: b64utf8(text) }
+          }));
+        };
+        ws.onmessage = function (ev) {
+          if (aborted()) { try { ws.close(); } catch (e) {} return; }
+          // 一个 JSON 消息可能被拆成多个 WebSocket 帧，先聚合再解析，避免丢音频块
+          jsonBuf += ev.data;
+          var msg = null;
+          try { msg = JSON.parse(jsonBuf); } catch (e) { return; }
+          jsonBuf = "";
+          if (msg.code !== 0) { try { ws.close(); } catch (e) {} fallback(); return; }
+          if (msg.data && msg.data.audio) {
+            var bin = atob(msg.data.audio);
+            for (var i = 0; i < bin.length; i++) bytes.push(bin.charCodeAt(i));
+          }
+          if (msg.data && msg.data.status === 2) {
+            try { ws.close(); } catch (e) {}
+            if (finished) return;
+            finished = true;
+            if (aborted()) return;   // 已被作废，丢弃结果不播放
+            var blob = new Blob([new Uint8Array(bytes)], { type: "audio/mpeg" });
+            cacheSet(key, blob);
+            playBlob(blob, onEnd, tok);
+          }
+        };
+        ws.onerror = function () { fallback(); };
+        ws.onclose = function (e) { if (bytes.length === 0 && !finished) fallback(); };
+      })
+      .catch(function () { if (tok === speechToken) browserSpeak(text, onEnd, tok); });
+  }
+
+  // 切断当前语音并作废在途请求（手动覆盖用）
+  function stopSpeaking() {
+    speechToken++;
+    speaking = false;
+    if (currentAudio) { try { currentAudio.pause(); } catch (e) {} currentAudio = null; }
+    if (window.speechSynthesis) { try { speechSynthesis.cancel(); } catch (e) {} }
+  }
+
+  function speak(text, onEnd) {
+    if (!voiceOn) { if (onEnd) setTimeout(onEnd, 300); return; }
+    var tok = speechToken;
+    speaking = true;
+    var done = function () { if (tok !== speechToken) return; speaking = false; if (onEnd) onEnd(); };
+    var key = cacheKey(text);
+    cacheGet(key).then(function (blob) {
+      if (tok !== speechToken) return;   // 已被新的手动操作作废，丢弃
+      if (blob) { playBlob(blob, done, tok); }
+      else if (IFLY_APPID && IFLY_APIKEY && IFLY_APISECRET && window.crypto && crypto.subtle) {
+        iflySynth(text, key, done, tok);
+      } else {
+        browserSpeak(text, done, tok);
+      }
+    });
+  }
+
+  // ---------- 话术模板（D1路大站快车）----------
+  function departScript() {
+    return "乘客们好，欢迎您乘坐，" + LINE + "路大站快车无人售票车，本车由" + TERM_A +
+      "，开往" + TERM_B + "，请您主动验卡，投币3元，不找零钱，谢谢合作。";
+  }
+  function approachScript(i) {
+    var s = stations[i];
+    var metro = s.metro ? "，" + s.metro : "";
+    if (i === stations.length - 1) {
+      return "车在行驶中，请您站稳扶好，不随意走动更换座位，请主动给需要帮助的乘客让个座，谢谢。" +
+        "请勿在车厢内饮食、吐痰、乱扔杂物，不要向车外抛物，下一站，终点站，" + s.name +
+        "，请您整理好自己的随身物品做好下车准备。";
+    }
+    return "车在行驶中，请您站稳扶好，不随意走动更换座位，请主动给需要帮助的乘客让个座，谢谢。" +
+      "请勿在车厢内饮食、吐痰、乱扔杂物，不要向车外抛物，下一站" + s.name + metro + "。";
+  }
+  function arriveScript(i) {
+    var s = stations[i];
+    return s.name + "到了，请带好随身物品做好下车准备。开门请注意，下车请注意安全，过街请走人行横道线，" +
+      s.name + "到了。" + LINE + "路大站快车无人售票车，开往" + TERM_B +
+      "，请有序排队主动让座，文明乘车。" + LINE + "路大站快车无人售票车，开往" + TERM_B + "。";
+  }
+  function departNextScript(i) {
+    return LINE + "路大站快车无人售票车，开往" + TERM_B + "，请有序排队主动让座，文明乘车。";
+  }
+  function terminalScript() {
+    return TERM_B + "，终点站到了，请您带清随身物品，欢迎您再次乘坐，" + LINE +
+      "路大站快车无人售票车，谢谢。";
+  }
+
+  // ---------- 显示 ----------
+  function updateHead() {
+    elRouteMeta.textContent = LINE + " 上行";
+    elHeadText.innerHTML =
+      '<span class="num">' + LINE + '</span><span class="arr">→</span><span class="dst">' + TERM_B + '</span>';
+    updateResetBtn();
+  }
+
+  function setMain(txt) { elMain.textContent = txt; }
+  function setSub(txt) { elSub.textContent = txt; }
+  function clearScreen() {}
+  function setLed(txt) { elLedArrive.textContent = txt; }
+
+  // ---------- 报站动作 ----------
+  function announceDepart(onEnd) {
+    clearScreen();
+    if (idx === 0) {
+      setMain(TERM_A);
+      setSub("下一站 " + stations[1].name);
+      setLed("欢迎乘坐 " + LINE + " 路");
+      speak(departScript(), onEnd);
+    } else if (idx < stations.length - 1) {
+      setMain(stations[idx].name);
+      setSub("下一站 " + stations[idx + 1].name);
+      setLed("下一站 " + stations[idx + 1].name);
+      if (onEnd) onEnd();
+    } else {
+      setMain(TERM_B);
+      setSub("终点站");
+      setLed("终点站 " + TERM_B);
+      if (onEnd) onEnd();
+    }
+  }
+
+  function announceApproach(onEnd) {
+    var i = idx + 1;
+    if (i >= stations.length) { if (onEnd) onEnd(); return; }
+    setMain("下一站");
+    setSub(stations[i].name);
+    setLed("下一站 " + stations[i].name);
+    clearScreen();
+    speak(approachScript(i), onEnd);
+  }
+
+  function announceArrive(onEnd) {
+    var i = idx;
+    setMain(stations[i].name);
+    setSub("请携带好随身物品 · 从后门下车");
+    setLed(stations[i].name + "到了");
+    speak(arriveScript(i), onEnd);
+  }
+
+  function announceDepartNext(onEnd) {
+    clearScreen();
+    setMain(stations[idx].name);
+    setSub("下一站 " + (stations[idx + 1] ? stations[idx + 1].name : ""));
+    setLed("本车开往 " + TERM_B);
+    speak(departNextScript(idx), onEnd);
+  }
+
+  function announceTerminal(onEnd) {
+    setMain("本车已到终点");
+    setSub("终点站 " + TERM_B);
+    setLed("终点站 " + TERM_B + "到了");
+    speak(terminalScript(), onEnd);
+  }
+
+  // ---------- 模式 ----------
+  var flowId = 0;
+  function stopAuto() {
+    flowId++;
+    if (timer) { clearTimeout(timer); timer = null; }
+    stopSpeaking();   // 手动操作时切断当前语音，避免重叠
+  }
+
+  // ---------- 自动模式：每步等语音播完 + 短停留，链式推进 ----------
+  function step(fid, ms, fn) {
+    if (fid !== flowId) return;
+    timer = setTimeout(function () { if (fid === flowId) fn(); }, ms);
+  }
+
+  function autoStartFrom(index) {
+    stopAuto();
+    var fid = ++flowId;
+    idx = Math.max(0, Math.min(stations.length - 1, index));
+    updateHead();
+    if (idx === 0) {
+      announceDepart(function () { step(fid, 2000, function () { autoApproach(fid); }); });
+    } else {
+      announceDepartNext(function () { step(fid, 2000, function () { autoApproach(fid); }); });
+    }
+  }
+
+  function autoApproach(fid) {
+    if (fid !== flowId) return;
+    announceApproach(function () { step(fid, 2000, function () { autoArrive(fid); }); });
+  }
+
+  function autoArrive(fid) {
+    if (fid !== flowId) return;
+    announceArrive(function () {
+      if (fid !== flowId) return;
+      if (idx === stations.length - 1) {
+        step(fid, 2000, function () { announceTerminal(); });
+        return;
+      }
+      step(fid, 4000, function () { autoDepartNext(fid); });
+    });
+  }
+
+  function autoDepartNext(fid) {
+    if (fid !== flowId) return;
+    announceDepartNext(function () {
+      if (fid !== flowId) return;
+      idx = idx + 1;
+      updateHead();
+      step(fid, 2000, function () { autoApproach(fid); });
+    });
+  }
+
+  // 重置/开始 按钮文案：始发站显示“开始”，否则显示“重置”
+  function updateResetBtn() {
+    $("btnReset").textContent = (idx === 0) ? "开始" : "重置";
+  }
+
+  // ---------- 手动跳站 ----------
+  function goTo(index) {
+    stopAuto();
+    idx = Math.max(0, Math.min(stations.length - 1, index));
+    updateHead();
+    announceDepart();
+  }
+
+  function nextStation() {
+    stopAuto();
+    if (idx < stations.length - 1) { idx = idx + 1; updateHead(); announceArrive(); }
+    else { goTo(0); }
+  }
+  function prevStation() {
+    stopAuto();
+    if (idx > 0) { goTo(idx - 1); }
+    else { goTo(0); }
+  }
+
+  // ---------- 事件绑定 ----------
+  // 自动模式开关（已停用）
+  /*
+  elAutoBtn.addEventListener("click", function () {
+    autoMode = !autoMode;
+    this.classList.toggle("on", autoMode);
+    this.textContent = autoMode ? "自动" : "手动";
+    if (autoMode) { autoStartFrom(idx); } else { stopAuto(); }
+  });
+  */
+
+  $("btnReset").addEventListener("click", function () {          // 始发站=开始；否则=重置回起点
+    if (idx === 0) { autoStartFrom(0); }                         // 点“开始”启动自动报站
+    else { stopAuto(); idx = 0; updateHead(); }                  // 重置回始发站（不播报，等用户点开始）
+  });
+  $("btnArrive").addEventListener("click", function () {         // 进站 → 到站报
+    stopAuto();
+    if (idx === stations.length - 1) { announceTerminal(); }
+    else { announceArrive(); }
+  });
+  $("btnPrev").addEventListener("click", prevStation);           // 左箭头 → 上一站
+  $("btnVoice").addEventListener("click", function () {         // 菜单 → 语音开关
+    voiceOn = !voiceOn;
+    this.textContent = voiceOn ? "菜单" : "静音";
+    this.classList.toggle("playing", !voiceOn);
+    if (!voiceOn) { stopSpeaking(); } else { speechSynthesis.cancel(); }
+  });
+  $("btnNext").addEventListener("click", function () {          // 出站 → 下一站
+    stopAuto();
+    if (idx < stations.length - 1) {
+      idx = idx + 1;
+      updateHead();
+      if (idx === stations.length - 1) { announceArrive(); }
+      else { announceDepart(); }
+    } else { goTo(0); }
+  });
+  $("btnForward").addEventListener("click", nextStation);        // 右箭头 → 下一站
+
+  // 刷新 / 速度 / 速度调整 / 广播音量
+  var ms = 9;                 // marquee 秒数
+  var volIdx = 0;
+  var volLevels = [50, 80, 100];
+
+  $("btnRefresh").addEventListener("click", function () {
+    // 重新开始滚动动画
+    var t = elLedArrive;
+    t.style.animation = "none";
+    void t.offsetWidth;
+    t.style.animation = "";
+    t.style.animation = "marquee " + ms + "s linear infinite";
+  });
+
+  $("btnSpeed").addEventListener("click", function () {
+    ms = (ms === 9) ? 6 : (ms === 6 ? 12 : 9);
+    document.documentElement.style.setProperty("--ms", ms + "s");
+    this.textContent = "速度 " + ms + "s";
+    var t = elLedArrive;
+    t.style.animation = "none";
+    void t.offsetWidth;
+    t.style.animation = "marquee " + ms + "s linear infinite";
+  });
+
+  $("btnVol").addEventListener("click", function () {
+    volIdx = (volIdx + 1) % volLevels.length;
+    volPct = volLevels[volIdx];
+    this.textContent = "广播音量 (" + volPct + "%)";
+  });
+
+  // 顶部固定语音
+  function buildVoiceGrid() {
+    var html = "";
+    fixedVoices.forEach(function (v, i) {
+      html += "<button class=\"voice-btn\" data-i=\"" + i + "\">" + v.label + "</button>";
+    });
+    $("voiceGrid").innerHTML = html;
+  }
+  $("voiceGrid").addEventListener("click", function (e) {
+    var b = e.target.closest(".voice-btn");
+    if (!b) return;
+    var v = fixedVoices[parseInt(b.getAttribute("data-i"), 10)];
+    var prev = $("voiceGrid").querySelector(".playing");
+    if (prev) prev.classList.remove("playing");
+    b.classList.add("playing");
+    stopAuto();
+    setSub("固定语音");
+    setLed(v.txt);
+    clearScreen();
+    speak(v.txt);
+    setTimeout(function () { b.classList.remove("playing"); }, 3000);
+  });
+
+  // ---------- 初始化 ----------
+  document.addEventListener("copy", function (e) { e.preventDefault(); });
+  document.addEventListener("cut", function (e) { e.preventDefault(); });
+  document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  document.addEventListener("selectstart", function (e) { e.preventDefault(); });
+  if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = pickVoice;
+  buildVoiceGrid();
+  updateHead();     // 打开即处于始发站，重置/开始按钮显示“开始”
+  // goTo(0);
+})();
+</script>
+</body>
+</html>
