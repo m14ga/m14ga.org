@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -35,7 +36,7 @@
   /* ============ 顶部功能按钮栏 ============ */
   .top-buttons {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
+    grid-template-columns: repeat(9, 1fr);
     gap: 4px;
   }
   .voice-btn {
@@ -46,7 +47,6 @@
     font-size: var(--fs-top);
     font-weight: 900;
     font-family: "Microsoft YaHei", "SimHei", sans-serif;
-    height: 90px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -264,7 +264,7 @@
     .side-btn { height: 60px; }
   }
   @media (max-width: 380px) {
-    .top-buttons { grid-template-columns: repeat(4, 1fr); }
+    .top-buttons { grid-template-columns: repeat(5, 1fr); }
     .voice-btn { height: 48px; }
   }
 
@@ -335,6 +335,98 @@
     cursor: pointer;
   }
   .info-card .close-btn:hover { color: #fff; border-color: #888; }
+
+  /* ============ 线路选择器 ============ */
+  .line-selector {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(0, 0, 0, .85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .line-selector.show { display: flex; }
+  .line-panel {
+    background: #18181c;
+    border: 2px solid #555;
+    border-radius: 20px;
+    padding: 28px 24px;
+    max-width: 600px;
+    width: 94%;
+    max-height: 88vh;
+    overflow-y: auto;
+    color: #eee;
+    font-family: "Microsoft YaHei", "SimHei", sans-serif;
+  }
+  .line-panel h2 {
+    margin: 0 0 16px;
+    font-size: 26px;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 2px;
+  }
+  .line-panel .line-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+    padding: 12px 14px;
+    border-radius: 20px;
+    background: #222228;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  .line-panel .line-row:hover { background: #2e2e36; }
+  .line-panel .line-row.active { border-color: #079dbb; background: #079dbb22; }
+  .line-panel .line-name {
+    font-size: 28px;
+    font-weight: 900;
+    min-width: 60px;
+    color: #ffcc00;
+  }
+  .line-panel .line-meta {
+    font-size: 15px;
+    color: #aaa;
+    flex: 1;
+    line-height: 1.3;
+  }
+  .line-panel .dir-btns { display: flex; gap: 6px; }
+  .line-panel .dir-btn {
+    padding: 8px 18px;
+    font-size: 16px;
+    font-weight: 700;
+    border: 2px solid #555;
+    border-radius: 20px;
+    background: #2a2a30;
+    color: #ccc;
+    cursor: pointer;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .line-panel .dir-btn:hover { background: #3a3a42; color: #fff; }
+  .line-panel .dir-btn.sel { background: #079dbb; color: #fff; border-color: #079dbb; }
+  .line-panel .close-line {
+    display: block;
+    margin: 18px auto 0;
+    padding: 10px 36px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #aaa;
+    background: #2a2a30;
+    border: 2px solid #555;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: color .12s, border-color .12s;
+  }
+  .line-panel .close-line:hover { color: #fff; border-color: #888; }
+  @media (max-width: 420px) {
+    .line-panel { padding: 20px 14px; }
+    .line-panel .line-name { font-size: 24px; min-width: 50px; }
+    .line-panel .line-meta { font-size: 13px; }
+    .line-panel .dir-btn { padding: 6px 14px; font-size: 14px; }
+    .line-panel .line-row { padding: 10px 10px; gap: 8px; }
+  }
 </style>
 </head>
 <body>
@@ -418,35 +510,182 @@
     </div>
   </div>
 
+  <!-- 线路选择器弹窗 -->
+  <div class="line-selector" id="lineSelector">
+    <div class="line-panel">
+      <h2>选择线路</h2>
+      <div id="lineList"></div>
+      <button class="close-line" id="lineClose">关闭</button>
+    </div>
+  </div>
+
 </div>
 <script>
 (function () {
   "use strict";
 
-  // ---------- 站点数据（含地铁换乘）----------
-  var stations = [
-    { name: "元化路", metro: "" },
-    { name: "南大仙林校区", metro: "此站可到达地铁2号线南大仙林校区站。" },
-    { name: "中医药大学", metro: "此站可到达地铁2号线羊山公园站。" },
-    { name: "南京邮电大学", metro: "" },
-    { name: "南京财经大学", metro: "" },
-    { name: "文苑路", metro: "" },
-    { name: "亚东新城区", metro: "" },
-    { name: "仙隐北路", metro: "" },
-    { name: "徐庄软件园", metro: "" },
-    { name: "聚宝山地铁站", metro: "此站可到达地铁4号线聚宝山站。" },
-    { name: "王家湾", metro: "" },
-    { name: "玄武大道·长途东站", metro: "" },
-    { name: "新庄广场东", metro: "此站可到达地铁3号线南京林业大学·新庄站。" },
-    { name: "新模范马路东", metro: "此站可到达地铁1号线新模范马路站。" },
-    { name: "司背后", metro: "" },
-    { name: "新模范马路·虹桥", metro: "此站可到达地铁5号线虹桥站。" },
-    { name: "定淮门", metro: "" },
-    { name: "清江花苑", metro: "" },
-    { name: "舸舫西园", metro: "" },
-    { name: "宝船遗址公园", metro: "" },
-    { name: "中保村", metro: "" }
+  // ---------- 线路数据（7条线路，含上下行）----------
+  var lines = [
+    {
+      name: "D1", type: "大站快车", fare: "3元",
+      up: [
+        "中保村","宝船遗址公园","清江花苑","定淮门","新模范马路·虹桥","司背后",
+        "新模范马路东","新庄广场东","玄武大道·长途东站","王家湾","聚宝山地铁站",
+        "徐庄软件园","仙隐北路","亚东新城区","文苑路","南京财经大学","南京邮电大学",
+        "中医药大学","南大仙林校区","元化路"
+      ],
+      down: [
+        "元化路","南大仙林校区","中医药大学","南京邮电大学","南京财经大学","文苑路",
+        "亚东新城区","仙隐北路","徐庄软件园","聚宝山地铁站","王家湾",
+        "玄武大道·长途东站","新庄广场东","新模范马路东","司背后","新模范马路·虹桥",
+        "定淮门","清江花苑","宝船遗址公园","中保村"
+      ],
+      metro: { "南大仙林校区":"地铁2号线南大仙林校区站","中医药大学":"地铁2号线羊山公园站",
+               "聚宝山地铁站":"地铁4号线聚宝山站","新庄广场东":"地铁3号线南京林业大学·新庄站",
+               "新模范马路东":"地铁1号线新模范马路站","新模范马路·虹桥":"地铁5号线虹桥站" }
+    },
+    {
+      name: "11", type: "", fare: "2元",
+      up: [
+        "燕江新城总站","神农路·壮举路","神农路·燕城大道","神农路桥","燕城大道·寅春西路",
+        "万寿地铁站南","万兴路·迈化路","壹城","万兴路南","兴贤佳园西","墨香山庄西",
+        "经五立交","樱驼花园","樱花路","蒋王庙","樱驼村","板仓街·花园路","钟麓花园",
+        "板仓村","板仓街·岗子村","太平门","北京东路·九华山","和平公园","北京东路·兰园",
+        "鼓楼公园","北京西路·云南路","玉泉路","江苏省委","北京西路·草场门","草场门大桥东",
+        "龙江小区","龙江新城市广场"
+      ],
+      down: [
+        "龙江新城市广场","龙江小区","草场门大桥东","北京西路·草场门","江苏省委","玉泉路",
+        "北京西路·云南路","鼓楼公园","北京东路·鸡鸣寺","北京东路·进香河路","北京东路·鼓楼",
+        "北京东路·兰园","北京东路·九华山","太平门","板仓街·岗子村","板仓村","钟麓花园",
+        "板仓街·花园路","樱驼村","蒋王庙","樱花路","樱驼花园","经五立交","墨香山庄西",
+        "兴贤佳园西","万兴路南","壹城","万兴路·迈化路","万寿地铁站南",
+        "燕城大道·寅春西路","神农路桥","神农路·燕城大道","燕江新城总站"
+      ],
+      metro: { "神农路桥":"地铁7号线万寿站","蒋王庙":"地铁4号线蒋王庙站",
+               "板仓街·岗子村":"地铁4号线岗子村站","北京东路·九华山":"地铁4号线九华山站",
+               "北京东路·鸡鸣寺":"地铁3/4号线鸡鸣寺站","鼓楼公园":"地铁1/4号线鼓楼站",
+               "北京西路·云南路":"地铁4/5号线云南路站","北京西路·草场门":"地铁4/7号线草场门站",
+               "草场门大桥东":"地铁4/7号线草场门站","龙江新城市广场":"地铁4号线龙江站" }
+    },
+    {
+      name: "32", type: "", fare: "2元",
+      up: [
+        "龙江新城市广场","龙江花园","江东北路·定淮门大街","龙园西路北","清江花苑",
+        "江东北路·三汊河","农贸中心","南医大二附院","热河南路","盐仓桥广场西",
+        "南医大二附院东院","中山北路·萨家湾","福建路·萨家湾","三牌楼大街北","和会街",
+        "司背后","新模范马路·青石村","新模范马路东","玄武湖隧道","许府巷","中央门南",
+        "中央门东","龙蟠路·南京站西","黄家圩","东井亭"
+      ],
+      down: [
+        "红山站","龙蟠路·南京站西","中央门东","中央门南","许府巷","玄武湖隧道",
+        "新模范马路东","新模范马路·青石村","司背后","和会街","三牌楼大街北",
+        "中山北路·萨家湾","福建路·萨家湾","盐仓桥广场西","热河南路","南医大二附院",
+        "农贸中心","江东北路·三汊河","清江花苑","龙园西路北","江东北路·定淮门大街",
+        "龙江花园","龙江新城市广场"
+      ],
+      metro: { "江东北路·三汊河":"地铁9号线三汊河站","农贸中心":"地铁9号线白云亭站",
+               "热河南路":"地铁5号线下关站","盐仓桥广场西":"地铁5号线盐仓桥站",
+               "福建路·萨家湾":"地铁5/7号线福建路站","新模范马路东":"地铁1号线新模范马路站",
+               "龙蟠路·南京站西":"地铁1/3号线南京站","龙江新城市广场":"地铁4号线龙江站" }
+    },
+    {
+      name: "66", type: "", fare: "2元",
+      up: [
+        "龙江新城市广场","龙江小区","草场门大桥东","虎踞北路·草场门","古林公园","古平岗",
+        "镇江路","丁山宾馆","双门楼宾馆","盐仓桥","长平桥西","长平桥东","民生街","城河村",
+        "金桥市场","中央门东","龙蟠路·南京站西","龙蟠路·南京站东","新庄广场西",
+        "新庄广场北","曹后村","红山路·华跃路","红山森林动物园","十字街",
+        "省中西医结合医院","迈皋桥东","长营村","北苑新村","月苑小区北","小营村西",
+        "合作村","万寿村","墨香路北","万寿停车场"
+      ],
+      down: [
+        "万寿停车场","墨香路北","万寿村","合作村","小营村西","月苑小区北","北苑新村",
+        "长营村","迈皋桥东","省中西医结合医院","十字街","红山森林动物园","红山路·华跃路",
+        "曹后村","新庄广场北","新庄广场西","龙蟠路·南京站东","龙蟠路·南京站西",
+        "中央门东","金桥市场","城河村","民生街","长平桥东","长平桥西","盐仓桥",
+        "双门楼宾馆","丁山宾馆","镇江路","古平岗","古林公园","虎踞北路·草场门",
+        "草场门大桥东","龙江小区","龙江新城市广场"
+      ],
+      metro: { "草场门大桥东":"地铁4/7号线草场门站","红山森林动物园":"地铁1号线红山动物园站",
+               "龙江新城市广场":"地铁4号线龙江站","龙蟠路·南京站西":"地铁1/3号线南京站" }
+    },
+    {
+      name: "34", type: "", fare: "2元",
+      up: [
+        "中山陵停车场","博爱园","下马坊","卫岗","卫桥","中山门","明故宫","明故宫西站",
+        "西安门","逸仙桥","大行宫","新街口东","新街口北站","珠江路北","鼓楼","大方巷",
+        "山西路","西流湾公园","虹桥","三牌楼","萨家湾","盐仓桥","中山桥","中山码头"
+      ],
+      down: [
+        "中山码头","中山桥","盐仓桥","萨家湾","三牌楼","虹桥","西流湾公园","山西路",
+        "大方巷","鼓楼","珠江路北","新街口东","大行宫","逸仙桥","西安门","明故宫西站",
+        "明故宫","中山门","卫桥","卫岗","下马坊","博爱园","中山陵停车场"
+      ],
+      metro: { "卫桥":"地铁苜蓿园站","大行宫":"地铁2/3号线大行宫站",
+               "新街口东":"地铁1/2号线新街口站","鼓楼":"地铁1/4号线鼓楼站",
+               "珠江路北":"地铁1号线珠江路站","中山门":"地铁苜蓿园站" }
+    },
+    {
+      name: "45", type: "", fare: "2元",
+      up: [
+        "宁工新寓","龙江地铁站西","龙江小区","南艺后街南","南艺西门","江苏广播电视塔",
+        "佳盛花园南","定淮门","古平岗西","水佐岗","三步两桥","新模范马路·虹桥","司背后",
+        "东柏果园","紫竹林","青石村","许府巷·江西路","中央门南","中央门立交","中央门东",
+        "龙蟠路·南京站西","龙蟠路·南京站东","新庄广场西","新庄广场北","曹后村东",
+        "青年路","石景山路西","石景山路东","阅武路北","月苑南路"
+      ],
+      down: [
+        "月苑南路","阅武路北","石景山路东","石景山路西","青年路","红山南路·恒嘉路",
+        "新庄广场北","新庄广场西","龙蟠路·南京站东","龙蟠路·南京站西","中央门东",
+        "中央门南","许府巷·江西路","青石村","紫竹林","东柏果园","司背后",
+        "新模范马路·虹桥","水佐岗","古平岗南","古林公园","虎踞北路·草场门",
+        "草场门大桥东","龙江小区","龙江地铁站西","宁工新寓"
+      ],
+      metro: { "龙江地铁站西":"地铁4号线龙江站","新模范马路·虹桥":"地铁5号线虹桥站",
+               "草场门大桥东":"地铁4/7号线草场门站","龙蟠路·南京站西":"地铁1/3号线南京站" }
+    },
+    {
+      name: "56", type: "", fare: "2元",
+      up: [
+        "奥体新城","月安街·华山路东","燕山路·月安街","燕山路·积贤街","万达广场西",
+        "万达广场北","江东中路·水西门大街","江东北路·汉中门大街","江东北路·东宝路",
+        "江东北路·清凉门大街","江东北路·闽江路","江东北路·草场门大街","龙江小区",
+        "草场门大桥东","北京西路·草场门","江苏省委","玉泉路","北京西路·云南路",
+        "云南路·大方巷","湖北路","湖南路","观音里","玄武湖隧道","中央门立交",
+        "中央门东","龙蟠路·南京站西","南京站·南广场西"
+      ],
+      down: [
+        "南京站·南广场西","龙蟠路·南京站西","中央门东","中央门南","许府巷",
+        "玄武湖隧道","玄武湖公园","湖南路","湖北路","云南路·大方巷","云南路",
+        "玉泉路","江苏省委","北京西路·草场门","草场门大桥东","龙江小区",
+        "江东北路·草场门大街","江东北路·闽江路","江东北路·清凉门大街",
+        "江东北路·东宝路","江东北路·汉中门大街","江东中路·水西门大街",
+        "万达广场北","万达广场西","燕山路·积贤街","燕山路·月安街",
+        "月安街·华山路东","兴隆大街·华山路","奥体新城"
+      ],
+      metro: { "草场门大桥东":"地铁4/7号线草场门站","北京西路·草场门":"地铁4/7号线草场门站",
+               "龙蟠路·南京站西":"地铁1/3号线南京站","万达广场西":"地铁2号线集庆门大街站" }
+    }
   ];
+
+  // 当前激活线路与方向
+  var currentLine = 0, currentDir = "up";
+  var stations, LINE, TERM_A, TERM_B;
+
+  function switchLine(lineIdx, dir) {
+    stopAuto();
+    currentLine = lineIdx;
+    currentDir = dir || "up";
+    var L = lines[currentLine];
+    LINE = L.name;
+    stations = L[currentDir].map(function (n) { return { name: n, metro: (L.metro[n] || "") }; });
+    TERM_A = stations[0].name;
+    TERM_B = stations[stations.length - 1].name;
+    idx = 0;
+    updateHead();
+    announceDepart();
+  }
 
   // 顶部固定服务语音（8 个，纯中文）
   var fixedVoices = [
@@ -459,10 +698,6 @@
     { label: "外转弯",  txt: "车辆转弯请注意安全，请站稳扶好" },
     { label: "满员",    txt: "本车已满员，请等候下一班车" }
   ];
-
-  var LINE = "D1";           // 线路编号
-  var TERM_A = "元化路";     // 起点
-  var TERM_B = "中保村";     // 终点
 
   // ---------- 状态 ----------
   var idx = 0;               // 当前站（0 = 起点）
@@ -536,8 +771,9 @@
     for (var j = 0; j < vs.length; j++) { if (/zh[-_]/i.test(vs[j].lang)) return vs[j]; }
     return null;
   }
-  function browserSpeak(text, onEnd) {
+  function browserSpeak(text, onEnd, tok) {
     if (!window.speechSynthesis) { if (onEnd) setTimeout(onEnd, 300); return; }
+    if (tok !== undefined && tok !== speechToken) return;
     speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(text);
     u.lang = "zh-CN";
@@ -652,41 +888,46 @@
     });
   }
 
-  // ---------- 话术模板（D1路大站快车）----------
+  // ---------- 话术模板 ----------
+  function lineTypeText() { return lines[currentLine].type || ""; }
   function departScript() {
-    return "乘客们好，欢迎您乘坐，" + LINE + "路大站快车无人售票车，本车由" + TERM_A +
-      "，开往" + TERM_B + "，请您主动验卡，投币3元，不找零钱，谢谢合作。";
+    var type = lineTypeText();
+    var fare = lines[currentLine].fare || "2元";
+    return "乘客们好，欢迎您乘坐，" + LINE + "路" + type + "无人售票车，本车由" + TERM_A +
+      "，开往" + TERM_B + "，请您主动验卡，投币" + fare + "，不找零钱，谢谢合作。";
   }
   function approachScript(i) {
     var s = stations[i];
-    var metro = s.metro ? "，" + s.metro : "";
+    var metro = s.metro ? "，此站可到达" + s.metro + "。" : "";
     if (i === stations.length - 1) {
       return "车在行驶中，请您站稳扶好，不随意走动更换座位，请主动给需要帮助的乘客让个座，谢谢。" +
         "请勿在车厢内饮食、吐痰、乱扔杂物，不要向车外抛物，下一站，终点站，" + s.name +
         "，请您整理好自己的随身物品做好下车准备。";
     }
     return "车在行驶中，请您站稳扶好，不随意走动更换座位，请主动给需要帮助的乘客让个座，谢谢。" +
-      "请勿在车厢内饮食、吐痰、乱扔杂物，不要向车外抛物，下一站" + s.name + metro + "。";
+      "请勿在车厢内饮食、吐痰、乱扔杂物，不要向车外抛物，下一站" + s.name + metro;
   }
   function arriveScript(i) {
     var s = stations[i];
     return s.name + "到了，请带好随身物品做好下车准备。开门请注意，下车请注意安全，过街请走人行横道线，" +
-      s.name + "到了。" + LINE + "路大站快车无人售票车，开往" + TERM_B +
-      "，请有序排队主动让座，文明乘车。" + LINE + "路大站快车无人售票车，开往" + TERM_B + "。";
+      s.name + "到了。" + LINE + "路无人售票车，开往" + TERM_B +
+      "，请有序排队主动让座，文明乘车。" + LINE + "路无人售票车，开往" + TERM_B + "。";
   }
   function departNextScript(i) {
-    return LINE + "路大站快车无人售票车，开往" + TERM_B + "，请有序排队主动让座，文明乘车。";
+    return LINE + "路无人售票车，开往" + TERM_B + "，请有序排队主动让座，文明乘车。";
   }
   function terminalScript() {
     return TERM_B + "，终点站到了，请您带清随身物品，欢迎您再次乘坐，" + LINE +
-      "路大站快车无人售票车，谢谢。";
+      "路无人售票车，谢谢。";
   }
 
   // ---------- 显示 ----------
   function updateHead() {
-    elRouteMeta.textContent = LINE + " 上行";
+    var dirText = currentDir === "up" ? "上行" : "下行";
+    var arrow = currentDir === "up" ? "→" : "←";
+    elRouteMeta.textContent = LINE + " " + dirText;
     elHeadText.innerHTML =
-      '<span class="num">' + LINE + '</span><span class="arr">→</span><span class="dst">' + TERM_B + '</span>';
+      '<span class="num">' + LINE + '</span><span class="arr">' + arrow + '</span><span class="dst">' + TERM_B + '</span>';
     updateResetBtn();
   }
 
@@ -700,7 +941,7 @@
     clearScreen();
     if (idx === 0) {
       setMain(TERM_A);
-      setSub("下一站 " + stations[1].name);
+      setSub(stations.length > 1 ? "下一站 " + stations[1].name : "终点站");
       setLed("欢迎乘坐 " + LINE + " 路");
       speak(departScript(), onEnd);
     } else if (idx < stations.length - 1) {
@@ -896,7 +1137,7 @@
 
   // 顶部固定语音
   function buildVoiceGrid() {
-    var html = "";
+    var html = "<button class=\"voice-btn\" id=\"btnLineSelect\" style=\"background:#c08010;\">线路</button>";
     fixedVoices.forEach(function (v, i) {
       html += "<button class=\"voice-btn\" data-i=\"" + i + "\">" + v.label + "</button>";
     });
@@ -905,6 +1146,7 @@
   $("voiceGrid").addEventListener("click", function (e) {
     var b = e.target.closest(".voice-btn");
     if (!b) return;
+    if (b.id === "btnLineSelect") { toggleLineSelector(true); return; }
     var v = fixedVoices[parseInt(b.getAttribute("data-i"), 10)];
     var prev = $("voiceGrid").querySelector(".playing");
     if (prev) prev.classList.remove("playing");
@@ -915,6 +1157,48 @@
     clearScreen();
     speak(v.txt);
     setTimeout(function () { b.classList.remove("playing"); }, 3000);
+  });
+
+  // ---------- 线路选择器 ----------
+  var elLineSel = $("lineSelector");
+  function buildLineList() {
+    var html = "";
+    lines.forEach(function (L, li) {
+      var isActive = (li === currentLine);
+      html += "<div class=\"line-row" + (isActive ? " active" : "") + "\" data-li=\"" + li + "\">";
+      html += "<span class=\"line-name\">" + L.name + "</span>";
+      html += "<span class=\"line-meta\">" + L.up[0] + " ⇄ " + L.up[L.up.length - 1];
+      if (L.type) html += " · " + L.type;
+      html += "</span>";
+      html += "<span class=\"dir-btns\">";
+      html += "<button class=\"dir-btn" + (isActive && currentDir === "up" ? " sel" : "") + "\" data-li=\"" + li + "\" data-dir=\"up\">上行</button>";
+      html += "<button class=\"dir-btn" + (isActive && currentDir === "down" ? " sel" : "") + "\" data-li=\"" + li + "\" data-dir=\"down\">下行</button>";
+      html += "</span></div>";
+    });
+    $("lineList").innerHTML = html;
+  }
+  function toggleLineSelector(show) {
+    elLineSel.classList.toggle("show", show);
+    if (show) { stopAuto(); buildLineList(); }
+  }
+  elLineSel.addEventListener("click", function (e) {
+    var btn = e.target.closest(".dir-btn");
+    if (btn) {
+      e.stopPropagation();
+      var li = parseInt(btn.getAttribute("data-li"), 10);
+      var dir = btn.getAttribute("data-dir");
+      switchLine(li, dir);
+      toggleLineSelector(false);
+      return;
+    }
+    var row = e.target.closest(".line-row");
+    if (row) {
+      var li2 = parseInt(row.getAttribute("data-li"), 10);
+      switchLine(li2, currentDir);
+      toggleLineSelector(false);
+      return;
+    }
+    if (e.target === elLineSel || e.target.id === "lineClose") toggleLineSelector(false);
   });
 
   // ---------- “i” 信息页 ----------
@@ -934,7 +1218,7 @@
   document.addEventListener("selectstart", function (e) { e.preventDefault(); });
   if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = pickVoice;
   buildVoiceGrid();
-  updateHead();     // 打开即处于始发站，重置/开始按钮显示“开始”
+  switchLine(0, "up");   // 默认 D1 上行
   // goTo(0);
 })();
 </script>
