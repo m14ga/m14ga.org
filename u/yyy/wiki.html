@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TheStar_Blue - Wiki</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+:root {
+  --bg: #000;
+  --text: #e8eaed;
+  --panel: rgba(255,255,255,0.03);
+  --card-border: rgba(255,255,255,0.08);
+  --header-text: rgba(255,255,255,0.35);
+  --header-accent: #64b5f6;
+  --price-color: #64b5f6;
+  --img-bg: rgba(255,255,255,0.04);
+  --fallback-color: rgba(255,255,255,0.15);
+  --link-color: rgba(255,255,255,0.35);
+  --link-hover: #64b5f6;
+  --toggle-color: rgba(255,255,255,0.2);
+  --toggle-hover: rgba(255,255,255,0.35);
+  --desc-color: rgba(255,255,255,0.5);
+  --viewer-bg: #000;
+}
+body.light {
+  --bg: #eef1f5;
+  --text: #1a2a3a;
+  --panel: #fff;
+  --card-border: rgba(0,0,0,0.06);
+  --header-text: #8a9aaa;
+  --header-accent: #2563eb;
+  --price-color: #2563eb;
+  --img-bg: #f0f2f5;
+  --fallback-color: #c0c8d0;
+  --link-color: #8a9aaa;
+  --link-hover: #2563eb;
+  --toggle-color: rgba(0,0,0,0.2);
+  --toggle-hover: rgba(0,0,0,0.35);
+  --desc-color: #4a5a6a;
+  --viewer-bg: #0a0a0a;
+}
+
+body {
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  transition: background 0.4s, color 0.4s;
+}
+
+.theme-btn {
+  position: fixed; top: 24px; right: 24px; z-index: 1000;
+  background: none; border: none; cursor: pointer; padding: 8px;
+  border-radius: 50%; color: var(--toggle-color);
+  transition: color 0.3s, transform 0.2s; line-height: 0;
+}
+.theme-btn:hover { color: var(--toggle-hover); transform: scale(1.1); }
+.theme-btn:active { transform: scale(0.9); }
+.theme-btn svg { width: 28px; height: 28px; display: block; }
+
+.header {
+  position: relative; z-index: 100;
+  padding: 30px 20px 4px;
+  text-align: center;
+}
+.header a {
+  display: inline-block;
+  color: var(--link-color);
+  text-decoration: none;
+  font-size: 0.88em;
+  margin-bottom: 8px;
+  transition: color 0.2s;
+}
+.header a:hover { color: var(--link-hover); }
+.header h1 { font-size: 1.5em; font-weight: 700; letter-spacing: 2px; }
+.header h1 span { color: var(--header-accent); }
+.crumb { margin-top: 6px; font-size: 0.8em; color: var(--header-text); }
+.crumb b { color: var(--text); font-weight: 600; }
+.crumb a { color: var(--header-text); text-decoration: none; margin: 0; }
+.crumb a:hover { color: var(--link-hover); }
+
+.scroll-wrap {
+  height: calc(100vh - 108px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 18px 20px 70px;
+}
+.scroll-wrap::-webkit-scrollbar { width: 5px; }
+.scroll-wrap::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.18); border-radius: 4px; }
+
+.wiki {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 34px;
+  align-items: start;
+}
+
+.pager { display: flex; gap: 8px; margin-top: 26px; flex-wrap: wrap; }
+.pager a, .pager span {
+  padding: 9px 20px;
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+  background: var(--panel);
+  color: var(--desc-color);
+  font-size: 0.86em;
+  text-decoration: none;
+  max-width: 46%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transition: all 0.2s;
+}
+.pager a:hover { color: var(--text); border-color: var(--header-accent); }
+.pager span.empty { opacity: 0.3; }
+
+.article h2.title {
+  font-size: 2.1em; font-weight: 700; letter-spacing: -0.5px;
+  margin-bottom: 6px; line-height: 1.2;
+}
+.meta-row {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding-bottom: 18px; margin-bottom: 20px;
+  border-bottom: 1px solid var(--card-border);
+}
+.meta-row .price { font-size: 1.2em; font-weight: 700; color: var(--price-color); }
+.meta-row .sub { font-size: 0.85em; color: var(--desc-color); }
+.cta {
+  display: inline-flex; align-items: center;
+  padding: 10px 26px; margin: 2px 0 20px;
+  border-radius: 20px;
+  background: var(--header-accent);
+  color: #fff; font-size: 0.88em; font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.cta:hover { opacity: 0.86; }
+.cta:active { transform: scale(0.97); }
+
+.body { font-size: 0.97em; line-height: 1.9; color: var(--text); }
+.body h1 { font-size: 1.5em; font-weight: 700; margin: 26px 0 10px; }
+.body h2 { font-size: 1.25em; font-weight: 600; margin: 24px 0 10px; }
+.body h3 { font-size: 1.08em; font-weight: 600; margin: 20px 0 8px; }
+.body p { margin-bottom: 14px; }
+.body ul, .body ol { margin: 8px 0 14px 22px; }
+.body li { margin-bottom: 6px; }
+.body a { color: var(--header-accent); text-underline-offset: 2px; }
+.body blockquote {
+  border-left: 3px solid var(--header-accent);
+  padding-left: 16px; margin: 16px 0; color: var(--desc-color);
+}
+.body hr { border: none; border-top: 1px solid var(--card-border); margin: 26px 0; }
+.body table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 0.92em; }
+.body th, .body td { border: 1px solid var(--card-border); padding: 7px 10px; text-align: left; }
+.body th { background: var(--panel); font-weight: 600; }
+.body code {
+  background: var(--img-bg); padding: 1px 5px; border-radius: 4px;
+  font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.9em;
+}
+.body pre {
+  background: var(--img-bg); padding: 12px 14px; border-radius: 12px;
+  overflow-x: auto; margin: 16px 0;
+  font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.88em; line-height: 1.6;
+}
+.body pre code { background: none; padding: 0; }
+.body .content-img {
+  display: block; max-width: 100%; height: auto;
+  border-radius: 14px; margin: 14px 0; cursor: zoom-in;
+  background: var(--img-bg);
+  transition: opacity 0.2s;
+}
+.body .content-img:hover { opacity: 0.88; }
+.body .empty-note { color: var(--header-text); }
+
+.side {
+  position: sticky; top: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.side .cover, .side .thumb-item {
+  background: var(--img-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: zoom-in;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.side .cover:hover, .side .thumb-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--header-accent);
+}
+.side .cover img, .side .thumb-item img { display: block; width: 100%; height: auto; }
+.side .cover { aspect-ratio: 4 / 5; }
+.side .cover img { width: 100%; height: 100%; object-fit: cover; }
+.side .thumb-item { aspect-ratio: 1; }
+.side .thumb-item img { width: 100%; height: 100%; object-fit: cover; }
+.side .fallback {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.6em; color: var(--fallback-color);
+}
+.side .side-label { color: var(--header-text); font-size: 0.75em; letter-spacing: 0.5px; text-align: center; transition: color 0.4s; }
+.side .thumbs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.status-msg {
+  text-align: center; color: var(--header-text);
+  padding: 80px 20px; transition: color 0.4s;
+}
+.status-msg h2 { font-size: 1.2em; font-weight: 500; margin-bottom: 6px; }
+.status-msg p { font-size: 0.9em; }
+.status-msg a { color: var(--link-hover); text-decoration: none; }
+.status-msg a:hover { text-decoration: underline; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block; width: 24px; height: 24px;
+  border: 2px solid var(--card-border); border-top-color: var(--header-accent);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+  margin-bottom: 10px;
+}
+
+#page { animation: pageIn 0.35s cubic-bezier(0.22,0.89,0.35,1) both; }
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#page.page-out {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  opacity: 0; transform: translateY(-8px);
+}
+
+.footer { text-align: center; padding: 20px; color: var(--header-text); font-size: 0.78em; transition: color 0.4s; }
+
+.img-viewer {
+  position: fixed; inset: 0;
+  background: var(--viewer-bg);
+  z-index: 3000;
+  display: none; overflow: hidden;
+}
+.img-viewer.open { display: block; }
+.img-viewer .close-btn {
+  position: fixed; top: 20px; right: 20px; z-index: 10;
+  background: rgba(255,255,255,0.06); border: none;
+  color: rgba(255,255,255,0.4);
+  width: 40px; height: 40px; border-radius: 50%;
+  font-size: 24px; cursor: pointer; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+.img-viewer .close-btn:hover { background: rgba(255,255,255,0.12); color: #fff; transform: scale(1.1); }
+.img-viewer .caption {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding: 40px 24px 24px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.6));
+  color: #fff; z-index: 10; pointer-events: none;
+}
+.img-viewer .caption h2 { font-size: 1.05em; font-weight: 600; }
+.img-viewer .caption p { font-size: 0.8em; opacity: 0.6; margin-top: 2px; }
+.img-viewer .img-stage {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.img-viewer .img-stage img {
+  display: block; max-width: 100vw; max-height: 100vh; object-fit: contain;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  will-change: transform; user-select: none; -webkit-user-drag: none; cursor: grab;
+}
+.img-viewer .img-stage img.zoomed { max-width: none; max-height: none; }
+.img-viewer .img-stage img.grabbing { cursor: grabbing; }
+
+@media (max-width: 900px) {
+  .wiki { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .side { position: static; }
+  .side .cover { aspect-ratio: 16 / 10; }
+  .article h2.title { font-size: 1.6em; }
+}
+@media (max-width: 640px) {
+  .header { padding: 22px 16px 2px; }
+  .header h1 { font-size: 1.2em; }
+  .scroll-wrap { padding: 14px 16px 60px; height: calc(100vh - 96px); }
+  .theme-btn { top: 14px; right: 14px; }
+  .theme-btn svg { width: 24px; height: 24px; }
+  .article h2.title { font-size: 1.4em; }
+  .meta-row .price { font-size: 1.05em; }
+}
+</style>
+</head>
+<body>
+<div id="page">
+
+<button class="theme-btn" id="themeBtn" aria-label="切换主题">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="5"/>
+    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+  </svg>
+</button>
+
+<div class="header">
+  <a id="backLink" href="index.html">← 返回首页</a>
+  <h1><span>TheStar</span>_Blue</h1>
+  <div class="crumb" id="crumb"></div>
+</div>
+
+<div class="scroll-wrap" id="scrollWrap">
+  <div class="status-msg" id="loading">
+    <div class="spinner"></div>
+    <p>加载中...</p>
+  </div>
+
+  <div id="wikiRoot" style="display:none">
+    <div class="wiki">
+      <article class="article">
+        <div id="articleHead"></div>
+        <div class="body" id="body"></div>
+        <div class="pager" id="pager"></div>
+      </article>
+
+      <aside class="side" id="side"></aside>
+    </div>
+  </div>
+</div>
+
+<div class="footer">&copy; TheStar_Blue</div>
+
+<div class="img-viewer" id="imgViewer">
+  <button class="close-btn" id="viewerClose">&times;</button>
+  <div class="caption">
+    <h2 id="viewerName"></h2>
+    <p id="viewerDesc"></p>
+  </div>
+  <div class="img-stage" id="imgStage">
+    <img src="" alt="" id="viewerImg" draggable="false">
+  </div>
+</div>
+
+<script>
+(function() {
+  var TEXTDB_KEY = 'TheStarBlue_ProdData';
+
+  // ===== 数据来源：优先读内嵌转义数据（独立 wiki 页），否则读云端 =====
+  var embedded = null;
+  var dataEl = document.getElementById('wiki-data');
+  if (dataEl) {
+    try { embedded = JSON.parse(dataEl.textContent); } catch (e) { embedded = null; }
+  }
+
+  var params = new URLSearchParams(location.search);
+  var type = params.get('type') === 'shop' ? 'shop' : 'roster';
+  var id = params.get('id');
+  var listPage = type === 'shop' ? 'shop.html' : 'roster.html';
+  var label = type === 'shop' ? '商品' : '角色';
+  var staticMode = !!embedded;
+
+  var loading = document.getElementById('loading');
+  var root = document.getElementById('wikiRoot');
+
+  function setHeader(type) {
+    listPage = type === 'shop' ? 'shop.html' : 'roster.html';
+    label = type === 'shop' ? '商品' : '角色';
+    var back = document.getElementById('backLink');
+    back.href = staticMode ? '../' + listPage : listPage;
+    back.textContent = '← 返回' + label + '列表';
+  }
+
+  function pageHref(p) {
+    if (staticMode) return type + '-' + p.id + '.html';
+    return 'wiki.html?type=' + type + '&id=' + encodeURIComponent(p.id);
+  }
+
+  function fail(html) {
+    loading.style.display = 'block';
+    root.style.display = 'none';
+    loading.innerHTML = html;
+  }
+
+  if (embedded) {
+    type = embedded.type || type;
+    setHeader(type);
+    render(embedded.items || [], embedded.current);
+  } else {
+    setHeader(type);
+    fetch('https://textdb.online/' + TEXTDB_KEY)
+      .then(function(r) { return r.text(); })
+      .then(function(text) {
+        var all = [];
+        if (text) {
+          try {
+            var data = JSON.parse(text);
+            all = (type === 'shop' ? data.shopProducts : data.rosterProducts) || [];
+          } catch (e) { all = []; }
+        }
+        var items = all.filter(function(p) { return p.enabled !== false; });
+        var current = null;
+        items.forEach(function(p) { if (String(p.id) === String(id)) current = p; });
+        if (!current) {
+          if (items.length === 0) return fail('<h2>✨ 暂无内容</h2><p>请先在管理后台添加并上架' + label + '。</p>');
+          return fail('<h2>未找到该条目</h2><p><a href="' + listPage + '">返回' + label + '列表</a></p>');
+        }
+        render(items, current);
+      })
+      .catch(function() {
+        fail('<h2>⚠️ 加载失败</h2><p>请检查网络后刷新重试</p>');
+      });
+  }
+
+  function render(items, current) {
+    if (!current) return;
+    if (!items.length) items = [current];
+    var idx = items.indexOf(current);
+    document.title = 'TheStar_Blue - ' + (current.name || label);
+
+    document.getElementById('crumb').innerHTML =
+      '<a href="' + escAttr(staticMode ? '../' + listPage : listPage) + '">' + label + '</a> · <b>' +
+      esc(current.name || '未命名') + '</b>';
+
+    var head = '<h2 class="title">' + esc(current.name || '未命名') + '</h2>';
+    head += '<div class="meta-row">';
+    if (type === 'shop' && current.price) head += '<span class="price">' + esc(current.price) + '</span>';
+    var plain = String(current.content || '').replace(/<[^>]*>/g, '').trim();
+    if (current.description && !plain) head += '<span class="sub">' + esc(current.description) + '</span>';
+    head += '</div>';
+    if (type === 'shop') {
+      head += '<a class="cta" href="' + (staticMode ? '../' : '') + 'about.html">联系购买 →</a>';
+    }
+    document.getElementById('articleHead').innerHTML = head;
+
+    var bodyEl = document.getElementById('body');
+    var html = sanitize(current.content || '');
+    if (!html) {
+      html = current.description
+        ? '<p>' + esc(current.description).replace(/\n/g, '<br>') + '</p>'
+        : '<p class="empty-note">暂无详细介绍。</p>';
+    } else if (current.description) {
+      html = '<p style="color:var(--desc-color)">' + esc(current.description).replace(/\n/g, '<br>') + '</p>' + html;
+    }
+    bodyEl.innerHTML = html;
+    enhanceBodyImages(bodyEl, current);
+
+    renderSide(current);
+
+    var prev = items[idx - 1], next = items[idx + 1];
+    document.getElementById('pager').innerHTML =
+      (prev ? '<a href="' + escAttr(pageHref(prev)) + '">← 上一个' + label + '：' + esc(prev.name || '未命名') + '</a>'
+            : '<span class="empty">← 上一个' + label + '</span>') +
+      (next ? '<a href="' + escAttr(pageHref(next)) + '">下一个' + label + '：' + esc(next.name || '未命名') + ' →</a>'
+            : '<span class="empty">下一个' + label + ' →</span>');
+
+    loading.style.display = 'none';
+    root.style.display = 'block';
+  }
+
+  function renderSide(item) {
+    var side = document.getElementById('side');
+    var urls = [];
+    (item.images || []).forEach(function(u) { if (u) urls.push(u); });
+
+    var html = '';
+    if (item.image) {
+      html += '<div class="cover" data-img="' + escAttr(item.image) + '">' +
+        '<img src="' + escAttr(item.image) + '" alt="" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=fallback>✦</div>\'"></div>';
+    }
+    if (urls.length) {
+      html += '<div class="side-label">插图 · ' + urls.length + '</div><div class="thumbs">';
+      urls.forEach(function(u) {
+        html += '<div class="thumb-item" data-img="' + escAttr(u) + '">' +
+          '<img src="' + escAttr(u) + '" alt="" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=fallback>✦</div>\'"></div>';
+      });
+      html += '</div>';
+    }
+    side.innerHTML = html || '<div class="cover"><div class="fallback">✦</div></div>';
+    side.querySelectorAll('[data-img]').forEach(function(el) {
+      el.addEventListener('click', function() { openImage(el.getAttribute('data-img'), item); });
+    });
+  }
+
+  function enhanceBodyImages(el, item) {
+    var imgs = el.querySelectorAll('img');
+    for (var i = 0; i < imgs.length; i++) {
+      imgs[i].classList.add('content-img');
+      imgs[i].setAttribute('loading', 'lazy');
+      imgs[i].addEventListener('click', (function(src) {
+        return function() { openImage(src, item); };
+      })(imgs[i].getAttribute('src')));
+    }
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function escAttr(s) {
+    return String(s).replace(/"/g, '&quot;').replace(/&/g, '&amp;');
+  }
+
+  function sanitize(html) {
+    var box = document.createElement('div');
+    box.innerHTML = html;
+    box.querySelectorAll('script,style,iframe,object,embed,link,meta,form').forEach(function(n) { n.remove(); });
+    box.querySelectorAll('*').forEach(function(n) {
+      for (var i = n.attributes.length - 1; i >= 0; i--) {
+        var a = n.attributes[i];
+        var name = a.name.toLowerCase();
+        var val = String(a.value || '').replace(/\s/g, '');
+        if (name.indexOf('on') === 0 || name === 'srcdoc') { n.removeAttribute(a.name); continue; }
+        if ((name === 'href' || name === 'src' || name === 'xlink:href') && /^(javascript:|data:text\/html|vbscript:)/i.test(val)) {
+          n.removeAttribute(a.name);
+        }
+      }
+    });
+    return box.innerHTML;
+  }
+
+  // ===== 沉浸看图 =====
+  var viewer = document.getElementById('imgViewer');
+  var viewerImg = document.getElementById('viewerImg');
+  var viewerName = document.getElementById('viewerName');
+  var viewerDesc = document.getElementById('viewerDesc');
+  var imgStage = document.getElementById('imgStage');
+  var vScale = 1, vTx = 0, vTy = 0;
+  var isPanning = false, startX, startY, startTx, startTy;
+
+  function resetViewer() {
+    vScale = 1; vTx = 0; vTy = 0;
+    viewerImg.className = '';
+    viewerImg.style.transform = '';
+  }
+  function openImage(src, item) {
+    if (!src) return;
+    resetViewer();
+    viewerImg.src = src;
+    viewerName.textContent = (item && item.name) || '';
+    viewerDesc.textContent = (item && item.description) || '';
+    viewer.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeViewer() {
+    viewer.classList.remove('open');
+    document.body.style.overflow = '';
+    resetViewer();
+  }
+  function applyV() {
+    viewerImg.style.transform = 'translate(' + vTx + 'px, ' + vTy + 'px) scale(' + vScale + ')';
+  }
+  function clampScale() {
+    vScale = Math.min(Math.max(vScale, 0.5), 8);
+    viewerImg.className = vScale > 1.2 ? 'zoomed' : '';
+  }
+
+  viewerImg.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    vScale *= (1 - e.deltaY * 0.002);
+    clampScale(); applyV();
+  }, { passive: false });
+
+  viewerImg.addEventListener('mousedown', function(e) {
+    isPanning = true;
+    startX = e.clientX; startY = e.clientY; startTx = vTx; startTy = vTy;
+    viewerImg.classList.add('grabbing');
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (!isPanning) return;
+    vTx = startTx + (e.clientX - startX);
+    vTy = startTy + (e.clientY - startY);
+    applyV();
+  });
+  document.addEventListener('mouseup', function() {
+    isPanning = false;
+    viewerImg.classList.remove('grabbing');
+  });
+  imgStage.addEventListener('click', function(e) { if (e.target === imgStage) closeViewer(); });
+  document.getElementById('viewerClose').addEventListener('click', closeViewer);
+
+  var lastDist = 0;
+  viewerImg.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 1) {
+      isPanning = true;
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+      startTx = vTx; startTy = vTy;
+    } else if (e.touches.length === 2) {
+      isPanning = false;
+      lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    }
+  });
+  viewerImg.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    if (e.touches.length === 1 && isPanning) {
+      vTx = startTx + (e.touches[0].clientX - startX);
+      vTy = startTy + (e.touches[0].clientY - startY);
+      applyV();
+    } else if (e.touches.length === 2) {
+      var d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      if (lastDist > 0) { vScale *= d / lastDist; clampScale(); applyV(); }
+      lastDist = d;
+    }
+  }, { passive: false });
+  viewerImg.addEventListener('touchend', function() { isPanning = false; lastDist = 0; });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeViewer();
+  });
+
+  // ===== Theme =====
+  (function() {
+    var body = document.body;
+    var btn = document.getElementById('themeBtn');
+    var saved = localStorage.getItem('tsb_theme');
+    if (saved === 'light') body.classList.add('light');
+    btn.addEventListener('click', function() {
+      body.classList.toggle('light');
+      localStorage.setItem('tsb_theme', body.classList.contains('light') ? 'light' : 'dark');
+    });
+  })();
+
+  // ===== Page Transition =====
+  (function() {
+    var page = document.getElementById('page');
+    document.addEventListener('click', function(e) {
+      var a = e.target.closest('a');
+      if (!a) return;
+      var href = a.getAttribute('href');
+      if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('javascript:')) return;
+      if (a.hasAttribute('target') || e.ctrlKey || e.metaKey || e.button !== 0) return;
+      e.preventDefault();
+      page.classList.add('page-out');
+      setTimeout(function() { window.location.href = href; }, 200);
+    });
+  })();
+})();
+</script>
+</body>
+</html>
