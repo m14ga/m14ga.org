@@ -146,6 +146,11 @@ tr:last-child td { border-bottom: none; }
 .status-badge.off { background: rgba(220,38,38,0.08); color: #dc2626; }
 
 .empty-list { text-align: center; padding: 30px 20px; color: #8a9aaa; font-size: 0.88em; }
+.sub-cell { color: #8a9aaa; font-size: 0.85em; margin-top: 2px; font-weight: 400; }
+.sub-cell .tag {
+  display: inline-block; padding: 1px 6px; border-radius: 20px;
+  background: rgba(37,99,235,0.08); color: #2563eb; font-size: 0.92em; margin-left: 4px;
+}
 
 /* ===== Form ===== */
 .form-card {
@@ -162,7 +167,7 @@ tr:last-child td { border-bottom: none; }
   background: #f5f7fa; border: 1px solid #d0d8e0;
   border-radius: 20px; font-size: 13px; outline: none;
 }
-.form-row textarea { resize: vertical; min-height: 50px; }
+.form-row textarea { resize: vertical; min-height: 50px; font-family: inherit; }
 .form-row input:focus, .form-row textarea:focus { border-color: #2563eb; }
 .form-row .checkbox-label {
   display: inline-flex; align-items: center; gap: 6px;
@@ -172,7 +177,7 @@ tr:last-child td { border-bottom: none; }
 .form-actions { display: flex; gap: 8px; margin-top: 4px; }
 .form-actions .btn-pri { min-width: 80px; }
 
-/* ===== About Editor ===== */
+/* ===== Editor ===== */
 .editor-toolbar {
   display: flex; gap: 2px; padding: 5px 8px;
   background: #f5f7fa; border: 1px solid #d0d8e0;
@@ -204,6 +209,20 @@ tr:last-child td { border-bottom: none; }
 .editor-area hr { border: none; border-top: 1px solid #d0d8e0; margin: 12px 0; }
 .editor-area a { color: #2563eb; }
 .editor-area img { max-width: 100%; border-radius: 20px; margin: 8px 0; }
+.editor-area table { border-collapse: collapse; width: 100%; font-size: 0.9em; }
+.editor-area td, .editor-area th { border: 1px solid #d0d8e0; padding: 4px 8px; }
+.editor-area pre {
+  background: #f5f7fa; padding: 10px 12px; border-radius: 12px;
+  font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.88em; overflow-x: auto;
+}
+.editor-area code {
+  background: #f0f2f5; padding: 1px 5px; border-radius: 4px;
+  font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.9em;
+}
+
+/* ===== Item (Wiki) editor ===== */
+.editor-toolbar .wide { width: auto; padding: 0 10px; font-size: 12px; }
+.editor-area.short { min-height: 160px; max-height: 320px; }
 
 /* ===== Save Bar ===== */
 .save-bar {
@@ -300,24 +319,24 @@ tr:last-child td { border-bottom: none; }
   </div>
 
   <div class="panel open" id="panelShop">
-    <div style="margin-bottom:12px">
+    <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-pri" onclick="openForm('shop')">+ 添加商品</button>
     </div>
     <div class="table-wrap">
       <table><thead><tr>
-        <th style="width:44px">图</th><th>名称</th><th>价格</th><th style="width:80px">状态</th><th style="width:100px">操作</th>
+        <th style="width:44px">图</th><th>名称</th><th>价格</th><th style="width:80px">状态</th><th style="width:150px">操作</th>
       </tr></thead><tbody id="shopBody"></tbody></table>
     </div>
     <div class="empty-list" id="shopEmpty">暂无商品</div>
   </div>
 
   <div class="panel" id="panelRoster">
-    <div style="margin-bottom:12px">
+    <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-pri" onclick="openForm('roster')">+ 添加角色</button>
     </div>
     <div class="table-wrap">
       <table><thead><tr>
-        <th style="width:44px">图</th><th>名称</th><th style="width:80px">状态</th><th style="width:100px">操作</th>
+        <th style="width:44px">图</th><th>名称</th><th style="width:80px">状态</th><th style="width:150px">操作</th>
       </tr></thead><tbody id="rosterBody"></tbody></table>
     </div>
     <div class="empty-list" id="rosterEmpty">暂无角色</div>
@@ -336,6 +355,7 @@ tr:last-child td { border-bottom: none; }
       <button onclick="execEdit('insertUnorderedList')">&#8226;</button>
       <button onclick="execEdit('insertOrderedList')">1.</button>
       <div class="sep"></div>
+      <button onclick="insertAboutImageURL()">&#128247; 插图</button>
       <button onclick="execEdit('insertHorizontalRule')">&mdash;</button>
       <button onclick="execEdit('removeFormat')">&times;</button>
     </div>
@@ -356,20 +376,48 @@ tr:last-child td { border-bottom: none; }
     <input type="hidden" id="editId">
     <input type="hidden" id="editType" value="shop">
     <div class="form-row">
-      <label>名称 *</label>
+      <label>名称</label>
       <input type="text" id="fName" placeholder="">
     </div>
     <div class="form-row">
-      <label>描述</label>
-      <textarea id="fDesc" placeholder="描述..."></textarea>
+      <label>简介</label>
+      <textarea id="fDesc" placeholder=""></textarea>
     </div>
     <div class="form-row" id="priceRow">
       <label>价格</label>
       <input type="text" id="fPrice" placeholder="￥10">
     </div>
     <div class="form-row">
-      <label>图片 URL</label>
+      <label>封面图</label>
       <input type="url" id="fImage" placeholder="https://...">
+    </div>
+    <div class="form-row">
+      <label>插图（每行一个）</label>
+      <textarea id="fImages" placeholder="https://..." style="min-height:70px"></textarea>
+    </div>
+    <div class="form-row">
+      <label>正文</label>
+      <div class="editor-toolbar">
+        <button onclick="itemExec('bold')" title="加粗"><b>B</b></button>
+        <button onclick="itemExec('italic')" title="斜体"><i>I</i></button>
+        <button onclick="itemExec('underline')" title="下划线"><u>U</u></button>
+        <div class="sep"></div>
+        <button class="label-btn" onclick="itemExec('formatBlock','h2')">H2</button>
+        <button class="label-btn" onclick="itemExec('formatBlock','h3')">H3</button>
+        <button class="label-btn" onclick="itemExec('formatBlock','p')">正文</button>
+        <div class="sep"></div>
+        <button onclick="itemExec('insertUnorderedList')" title="无序列表">&#8226;</button>
+        <button onclick="itemExec('insertOrderedList')" title="有序列表">1.</button>
+        <div class="sep"></div>
+        <button onclick="itemExec('justifyLeft')" title="左对齐">&#8592;</button>
+        <button onclick="itemExec('justifyCenter')" title="居中">&#8596;</button>
+        <div class="sep"></div>
+        <button class="label-btn wide" onclick="insertItemImageURL()">&#128247; 插图</button>
+        <button onclick="insertItemLinkURL()" title="插入链接">&#128279;</button>
+        <button onclick="itemExec('insertHorizontalRule')" title="分隔线">&mdash;</button>
+        <button onclick="itemExec('removeFormat')" title="清除格式">&times;</button>
+      </div>
+      <div class="editor-area short" id="contentEditor" contenteditable="true"></div>
     </div>
     <div class="form-row">
       <label class="checkbox-label">
@@ -551,7 +599,7 @@ function saveToServer() {
   var json = JSON.stringify({
     shopProducts: shopProducts,
     rosterProducts: rosterProducts,
-    aboutContent: ae ? ae.innerHTML : ''
+    aboutContent: sanitizeHtml(ae ? ae.innerHTML : '')
   });
   fetch('https://textdb.online/update/?key=' + encodeURIComponent(TEXTDB_KEY) + '&value=' + encodeURIComponent(json))
     .then(function(r) { return r.json(); })
@@ -574,6 +622,8 @@ function openForm(type, data) {
   document.getElementById('fDesc').value = data ? (data.description || '') : '';
   document.getElementById('fPrice').value = (isShop && data) ? (data.price || '') : '';
   document.getElementById('fImage').value = data ? (data.image || '') : '';
+  document.getElementById('fImages').value = (data && data.images && data.images.length) ? data.images.join('\n') : '';
+  document.getElementById('contentEditor').innerHTML = (data && data.content) ? data.content : '';
   document.getElementById('fEnabled').checked = data ? (data.enabled !== false) : true;
   document.getElementById('fName').focus();
 }
@@ -586,11 +636,15 @@ function saveProduct() {
   var type = document.getElementById('editType').value;
   var list = type === 'shop' ? shopProducts : rosterProducts;
   var editId = document.getElementById('editId').value;
+  var images = document.getElementById('fImages').value
+    .split('\n').map(function(s) { return s.trim(); }).filter(function(s) { return s; });
   var product = {
     name: name,
     description: document.getElementById('fDesc').value.trim(),
     price: type === 'shop' ? document.getElementById('fPrice').value.trim() : '',
     image: document.getElementById('fImage').value.trim(),
+    images: images,
+    content: sanitizeHtml(document.getElementById('contentEditor').innerHTML),
     enabled: document.getElementById('fEnabled').checked
   };
   if (editId) {
@@ -603,6 +657,10 @@ function saveProduct() {
     toast('已添加，记得保存！');
   }
   closeForm(); dirty = true; renderAll(); updateSaveInfo();
+}
+
+function viewItem(type, id) {
+  window.open('../wiki.html?type=' + type + '&id=' + encodeURIComponent(id), '_blank');
 }
 
 function editProduct(type, id) {
@@ -686,10 +744,13 @@ function renderTable(type, list, bodyId, emptyId) {
       : '<div class="no-thumb">✦</div>';
     var st = '<span class="status-badge ' + (p.enabled !== false ? 'on' : 'off') + '" onclick="toggleProduct(\'' + type + '\',' + p.id + ')">' + (p.enabled !== false ? '上架' : '下架') + '</span>';
     var price = isShop ? '<td>' + (p.price ? esc(p.price) : '-') + '</td>' : '';
+    var hasBody = String(p.content || '').replace(/<[^>]*>/g, '').trim() ? ' ✓正文' : '';
+    var imgCount = (p.images && p.images.length) ? ' <span class="tag">' + p.images.length + '图</span>' : '';
     return '<tr class="' + (p.enabled === false ? 'disabled' : '') + '">' +
-      '<td>' + img + '</td><td>' + esc(p.name) + '</td>' + price +
+      '<td>' + img + '</td><td>' + esc(p.name) + '<div class="sub-cell">' + hasBody + imgCount + '</div></td>' + price +
       '<td>' + st + '</td>' +
-      '<td><div class="actions"><button class="btn btn-sec btn-sm" onclick="editProduct(\'' + type + '\',' + p.id + ')">编辑</button>' +
+      '<td><div class="actions"><button class="btn btn-sec btn-sm" onclick="viewItem(\'' + type + '\',' + p.id + ')">查看</button>' +
+      '<button class="btn btn-sec btn-sm" onclick="editProduct(\'' + type + '\',' + p.id + ')">编辑</button>' +
       '<button class="btn btn-dan btn-sm" onclick="deleteProduct(\'' + type + '\',' + p.id + ')">删除</button></div></td></tr>';
   }).join('');
 }
@@ -710,6 +771,71 @@ function showConfirm(msg) {
 function execEdit(cmd, val) {
   document.execCommand(cmd, false, val || null);
   document.getElementById('aboutEditor').focus();
+}
+
+function insertAboutImageURL() {
+  var ed = document.getElementById('aboutEditor');
+  insertImageInto(ed);
+}
+
+function itemExec(cmd, val) {
+  var ed = document.getElementById('contentEditor');
+  ed.focus();
+  document.execCommand(cmd, false, val || null);
+}
+
+function insertItemImageURL() {
+  insertImageInto(document.getElementById('contentEditor'));
+}
+
+function insertItemLinkURL() {
+  var url = prompt('输入链接地址：', 'https://');
+  if (!url) return;
+  url = url.trim();
+  if (!url) return;
+  if (!/^(https?:\/\/|\/|mailto:|#)/i.test(url)) url = 'https://' + url;
+  itemExec('createLink', url);
+}
+
+function insertImageInto(ed) {
+  var url = prompt('输入图片 URL：', 'https://');
+  if (!url) return;
+  url = url.trim();
+  if (!url) return;
+  ed.focus();
+  document.execCommand('insertHTML', false,
+    '<img src="' + url.replace(/"/g, '&quot;').replace(/</g, '&lt;') + '" alt="">');
+}
+
+// 基础清洗：去脚本 / 事件属性 / 危险链接 / 非白名单标签
+var ALLOWED_TAGS = {
+  B: 1, STRONG: 1, I: 1, EM: 1, U: 1, S: 1, SMALL: 1, SUP: 1, SUB: 1,
+  H1: 1, H2: 1, H3: 1, H4: 1, P: 1, DIV: 1, SPAN: 1, BR: 1, HR: 1,
+  UL: 1, OL: 1, LI: 1, BLOCKQUOTE: 1, PRE: 1, CODE: 1,
+  IMG: 1, A: 1, FIGURE: 1, FIGCAPTION: 1,
+  TABLE: 1, THEAD: 1, TBODY: 1, TR: 1, TD: 1, TH: 1,
+  DL: 1, DT: 1, DD: 1
+};
+
+function sanitizeHtml(html) {
+  var box = document.createElement('div');
+  box.innerHTML = html || '';
+  box.querySelectorAll('script,style,iframe,object,embed,link,meta,form').forEach(function(n) { n.remove(); });
+  box.querySelectorAll('*').forEach(function(n) {
+    for (var i = n.attributes.length - 1; i >= 0; i--) {
+      var a = n.attributes[i];
+      var name = a.name.toLowerCase();
+      var val = String(a.value || '').replace(/\s/g, '');
+      if (name.indexOf('on') === 0 || name === 'srcdoc') { n.removeAttribute(a.name); continue; }
+      if ((name === 'href' || name === 'src' || name === 'xlink:href') && /^(javascript:|data:text\/html|vbscript:)/i.test(val)) {
+        n.removeAttribute(a.name);
+      }
+    }
+  });
+  box.querySelectorAll('*').forEach(function(n) {
+    if (!ALLOWED_TAGS[n.tagName]) n.remove();
+  });
+  return box.innerHTML;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
